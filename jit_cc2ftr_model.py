@@ -4,7 +4,6 @@ import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
 
-
 # Make the the multiple attention with word vectors.
 def attention_mul(rnn_outputs, att_weights):
     attn_vectors = None
@@ -18,7 +17,6 @@ def attention_mul(rnn_outputs, att_weights):
         else:
             attn_vectors = torch.cat((attn_vectors, h_i), 0)
     return torch.sum(attn_vectors, 0).unsqueeze(0)
-
 
 # The word RNN model for generating a sentence vector
 class WordRNN(nn.Module):
@@ -89,7 +87,6 @@ class HunkRNN(nn.Module):
         hunk = attention_mul(out_state, attn)
         return hunk, hid_state
 
-
 # The HAN model
 class HierachicalRNN(nn.Module):
     def __init__(self, args):
@@ -130,20 +127,12 @@ class HierachicalRNN(nn.Module):
         for i in range(n_hunk):
             sents = None
             for j in range(n_line):
-                words = list()
-                for k in range(n_batch):
-                    words.append(x[k][i][j])
+                words = [x[k][i][j] for k in range(n_batch)]
                 words = np.array(words)
                 sent, state_word = self.wordRNN(torch.cuda.LongTensor(words).view(-1, self.batch_size), hid_state_word)
-                if sents is None:
-                    sents = sent
-                else:
-                    sents = torch.cat((sents, sent), 0)
+                sents = sent if sents is None else torch.cat((sents, sent), 0)
             hunk, state_sent = self.sentRNN(sents, hid_state_sent)
-            if hunks is None:
-                hunks = hunk
-            else:
-                hunks = torch.cat((hunks, hunk), 0)
+            hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
         hunks = torch.mean(hunks, dim=0)  # hunk features
         return hunks
 
@@ -188,8 +177,7 @@ class HierachicalRNN(nn.Module):
         nn = self.standard_neural_network_layer(added_code=x_added_code, removed_code=x_removed_code)
         ntn = self.neural_network_tensor_layer(added_code=x_added_code, removed_code=x_removed_code)
 
-        x_diff_code = torch.cat((subtract, multiple, cos, euc, nn, ntn), dim=1)
-        return x_diff_code
+        return torch.cat((subtract, multiple, cos, euc, nn, ntn), dim=1)
 
     def forward_commit_embeds(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
         hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
@@ -200,8 +188,7 @@ class HierachicalRNN(nn.Module):
         x_added_code = x_added_code.view(self.batch_size, self.embed_size)
         x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
 
-        x_diff_code = torch.cat((x_added_code, x_removed_code), dim=1)
-        return x_diff_code
+        return torch.cat((x_added_code, x_removed_code), dim=1)
 
     def subtraction(self, added_code, removed_code):
         return added_code - removed_code

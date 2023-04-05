@@ -9,10 +9,7 @@ def evaluation_model(data, params):
     batches = mini_batches_DExtended(X_ftr=cc2ftr, X_msg=pad_msg, X_code=pad_code, Y=labels)
 
     params.vocab_msg, params.vocab_code = len(dict_msg), len(dict_code)
-    if len(labels.shape) == 1:
-        params.class_num = 1
-    else:
-        params.class_num = labels.shape[1]
+    params.class_num = 1 if len(labels.shape) == 1 else labels.shape[1]
     params.embedding_ftr = cc2ftr.shape[1]
 
     # set up parameters
@@ -27,7 +24,7 @@ def evaluation_model(data, params):
 
     model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
     with torch.no_grad():
-        all_predict, all_label = list(), list()
+        all_predict, all_label = [], []
         for i, (batch) in enumerate(tqdm(batches)):
             ftr, pad_msg, pad_code, label = batch
             if torch.cuda.is_available():

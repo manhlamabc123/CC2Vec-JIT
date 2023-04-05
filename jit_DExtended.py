@@ -7,7 +7,7 @@ from jit_DExtended_train import train_model
 
 def read_args():
     parser = argparse.ArgumentParser()
-     # Training our model
+    # Training our model
     parser.add_argument('-train', action='store_true', help='training DeepJIT model')  
 
     parser.add_argument('-train_data', type=str, help='the directory of our training data')

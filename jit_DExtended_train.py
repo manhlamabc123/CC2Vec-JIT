@@ -8,7 +8,7 @@ from jit_utils import save
 
 def train_model(data, params):
     cc2ftr, data_pad_msg, data_pad_code, data_labels, dict_msg, dict_code = data
-    
+
     # set up parameters
     params.cuda = (not params.no_cuda) and torch.cuda.is_available()
     del params.no_cuda
@@ -19,10 +19,7 @@ def train_model(data, params):
     params.vocab_msg, params.vocab_code = len(dict_msg), len(dict_code)
     params.embedding_ftr = cc2ftr.shape[1]
 
-    if len(data_labels.shape) == 1:
-        params.class_num = 1
-    else:
-        params.class_num = data_labels.shape[1]
+    params.class_num = 1 if len(data_labels.shape) == 1 else data_labels.shape[1]
     params.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # create and train the defect model
@@ -36,7 +33,7 @@ def train_model(data, params):
         total_loss = 0
         # building batches for training model
         batches = mini_batches_update_DExtended(X_ftr=cc2ftr, X_msg=data_pad_msg, X_code=data_pad_code, Y=data_labels)
-        for i, (batch) in enumerate(tqdm(batches)):
+        for batch in tqdm(batches):
             ftr, pad_msg, pad_code, labels = batch
             if torch.cuda.is_available():
                 ftr = torch.tensor(ftr).cuda()
@@ -54,5 +51,5 @@ def train_model(data, params):
             loss.backward()
             optimizer.step()
 
-        print('Epoch %i / %i -- Total loss: %f' % (epoch, params.num_epochs, total_loss))    
+        print('Epoch %i / %i -- Total loss: %f' % (epoch, params.num_epochs, total_loss))
         save(model, params.save_dir, 'epoch', epoch)
