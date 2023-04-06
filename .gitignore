@@ -1,4 +1,5 @@
 model
 data
 jit_extract_qt
+jit_extract_openstack
 __pycache__
