@@ -38,12 +38,12 @@ def read_args():
     parser.add_argument('--predict', action='store_true', help='predicting testing data')
 
     # Number of parameters for Attention model
-    parser.add_argument('-embed_size', type=int, default=64, help='the dimension of embedding vector')
+    parser.add_argument('-embed_size', type=int, default=768, help='the dimension of embedding vector')
     parser.add_argument('-hidden_size', type=int, default=32, help='the number of nodes in hidden layers')
     parser.add_argument('-dropout_keep_prob', type=float, default=0.5, help='dropout for training PatchNet')
     parser.add_argument('-l2_reg_lambda', type=float, default=1e-5, help='regularization rate')
     parser.add_argument('-learning_rate', type=float, default=1e-4, help='learning rate')
-    parser.add_argument('-batch_size', type=int, default=8, help='batch size')
+    parser.add_argument('-batch_size', type=int, default=4, help='batch size')
     parser.add_argument('-num_epochs', type=int, default=50, help='the number of epochs')    
     parser.add_argument('-save-dir', type=str, default='snapshot', help='where to save the snapshot')    
 
