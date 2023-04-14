@@ -232,14 +232,12 @@ class HierachicalRNN(nn.Module):
         out = self.sigmoid(out).squeeze(1)
         return out
 
-    def forward_commit_embeds_diff(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
+    def forward_commit_embeds_diff(self, added_code, removed_code):
+        x_added_code = self.forward_code(x=added_code)
+        x_removed_code = self.forward_code(x=removed_code)
 
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-
-        x_added_code = x_added_code.view(self.batch_size, self.embed_size)
-        x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
+        x_added_code = torch.mean(x_added_code, dim=1)
+        x_removed_code = torch.mean(x_removed_code, dim=1)
 
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
