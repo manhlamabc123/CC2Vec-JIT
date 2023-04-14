@@ -4,6 +4,9 @@ import numpy as np
 from jit_padding import padding_message, clean_and_reformat_code, padding_commit_code, mapping_dict_msg, mapping_dict_code, convert_msg_to_label
 from jit_cc2ftr_train import train_model
 from jit_cc2ftr_extracted import extracted_cc2ftr
+from transformers import RobertaTokenizer
+from dataset import CustomDataset
+from torch.utils.data import DataLoader
 
 def read_args():
     parser = argparse.ArgumentParser()
@@ -69,16 +72,46 @@ if __name__ == '__main__':
         dict_msg, dict_code = dictionary  
 
         pad_msg = padding_message(data=msgs, max_length=params.msg_length)
-        added_code, removed_code = clean_and_reformat_code(codes)
-        pad_added_code = padding_commit_code(data=added_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
-        pad_removed_code = padding_commit_code(data=removed_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
+        # added_code, removed_code = clean_and_reformat_code(codes)
+        # pad_added_code = padding_commit_code(data=added_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
+        # pad_removed_code = padding_commit_code(data=removed_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
 
         pad_msg = mapping_dict_msg(pad_msg=pad_msg, dict_msg=dict_msg)
-        pad_added_code = mapping_dict_code(pad_code=pad_added_code, dict_code=dict_code)
-        pad_removed_code = mapping_dict_code(pad_code=pad_removed_code, dict_code=dict_code)
+        # pad_added_code = mapping_dict_code(pad_code=pad_added_code, dict_code=dict_code)
+        # pad_removed_code = mapping_dict_code(pad_code=pad_removed_code, dict_code=dict_code)
         pad_msg_labels = convert_msg_to_label(pad_msg=pad_msg, dict_msg=dict_msg)
 
-        data = (pad_added_code, pad_removed_code, pad_msg_labels, dict_msg, dict_code)   
+        # data = (pad_added_code, pad_removed_code, pad_msg_labels, dict_msg, dict_code)
+
+        tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+
+        added_code_list = []
+        removed_code_list = []
+
+        for commit in codes[:100]:
+            added_code_tokens = [tokenizer.cls_token]
+            removed_code_tokens = [tokenizer.cls_token]
+            for hunk in commit:
+                added_code = " ".join(hunk["added_code"])
+                removed_code = " ".join(hunk["removed_code"])
+                added_code_tokens += tokenizer.tokenize(added_code) + [tokenizer.sep_token]
+                removed_code_tokens += tokenizer.tokenize(removed_code) + [tokenizer.sep_token]
+            added_code_tokens += [tokenizer.eos_token]
+            removed_code_tokens += [tokenizer.eos_token]
+            added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
+            removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
+            # added_tokens_tensor = torch.tensor(added_tokens_ids, device="cuda")
+            # removed_tokens_tensor = torch.tensor(removed_tokens_ids, device="cuda")
+            added_code_list.append(added_tokens_ids)
+            removed_code_list.append(removed_tokens_ids)
+
+        pad_token_id = tokenizer.pad_token_id # assuming you have a tokenizer object already
+        max_seq_length = 512 # set your desired maximum sequence length here
+        code_dataset = CustomDataset(added_code_list, removed_code_list, pad_token_id, train_labels, max_seq_length)
+        code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size)
+
+        data = (code_dataloader, dict_msg, dict_code)
+
         train_model(data=data, params=params)
         print('--------------------------------------------------------------------------------')
         print('--------------------------Finish the training process---------------------------')
