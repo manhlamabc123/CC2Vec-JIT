@@ -88,7 +88,7 @@ if __name__ == '__main__':
         added_code_list = []
         removed_code_list = []
 
-        for commit in codes[:100]:
+        for commit in codes:
             added_code_tokens = [tokenizer.cls_token]
             removed_code_tokens = [tokenizer.cls_token]
             for hunk in commit:
@@ -132,7 +132,7 @@ if __name__ == '__main__':
         added_code_list = []
         removed_code_list = []
 
-        for commit in codes[:100]:
+        for commit in codes:
             added_code_tokens = [tokenizer.cls_token]
             removed_code_tokens = [tokenizer.cls_token]
             for hunk in commit:
