@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
         pad_token_id = tokenizer.pad_token_id # assuming you have a tokenizer object already
         max_seq_length = 512 # set your desired maximum sequence length here
-        code_dataset = CustomDataset(added_code_list, removed_code_list, pad_token_id, train_labels, max_seq_length)
+        code_dataset = CustomDataset(added_code_list, removed_code_list, pad_token_id, labels, max_seq_length)
         code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size)
 
         data = (code_dataloader, dict_msg, dict_code)
