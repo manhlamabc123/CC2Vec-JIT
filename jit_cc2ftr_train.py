@@ -8,12 +8,15 @@ from jit_cc2ftr_model import HierachicalRNN
 
 def train_model(data, params):
     # Split data
-    code_loader, _, dict_code = data
+    code_loader, pad_msg_labels, _, dict_code = data
 
     # Set up param
     params.save_dir = os.path.join(params.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     params.vocab_code = len(dict_code)    
-    params.class_num = 1
+    if len(pad_msg_labels.shape) == 1:
+        params.class_num = 1
+    else:
+        params.class_num = pad_msg_labels.shape[1]
 
     # Create model, optimizer, criterion
     model = HierachicalRNN(args=params).to(params.device)
@@ -27,7 +30,7 @@ def train_model(data, params):
             # Extract data from DataLoader
             added_code = batch["added_code"].to(params.device)
             removed_code = batch["removed_code"].to(params.device)
-            label = batch["label"].to(params.device)
+            labels = batch["labels"].to(params.device)
             
             optimizer.zero_grad()
 
@@ -35,7 +38,7 @@ def train_model(data, params):
             predict = model.forward(added_code, removed_code)
 
             # Calculate loss
-            loss = criterion(predict, label)
+            loss = criterion(predict, labels)
 
             loss.backward()
 
