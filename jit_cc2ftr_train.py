@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from jit_cc2ftr_model import HierachicalRNN
-from global_variables import *
 
 def train_model(data, params):
     # Split data
@@ -17,7 +16,7 @@ def train_model(data, params):
     params.class_num = 1
 
     # Create model, optimizer, criterion
-    model = HierachicalRNN(args=params).to(DEVICE)
+    model = HierachicalRNN(args=params).to(params.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
     
@@ -26,9 +25,9 @@ def train_model(data, params):
         total_loss = 0
         for batch in tqdm(code_loader):
             # Extract data from DataLoader
-            added_code = batch["added_code"]
-            removed_code = batch["removed_code"]
-            label = batch["label"]
+            added_code = batch["added_code"].to(params.device)
+            removed_code = batch["removed_code"].to(params.device)
+            label = batch["label"].to(params.device)
             
             optimizer.zero_grad()
 

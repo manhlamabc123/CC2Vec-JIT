@@ -2,6 +2,7 @@ import argparse
 from jit_cc2ftr_train import train_model
 from jit_cc2ftr_extracted import extracted_cc2ftr
 from jit_cc2ftr_preprocess import preprocess_data
+import torch
 
 def read_args():
     parser = argparse.ArgumentParser()
@@ -49,7 +50,8 @@ def read_args():
     return parser
 
 if __name__ == '__main__':
-    params = read_args().parse_args()    
+    params = read_args().parse_args()
+    params.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     
     if params.train is True:
 

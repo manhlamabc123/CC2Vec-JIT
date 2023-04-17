@@ -1,9 +1,7 @@
 import pickle
-from torch.utils.data import Dataset
-from global_variables import *
+from torch.utils.data import Dataset, DataLoader
 import torch
 from transformers import RobertaTokenizer
-from jit_padding import padding_message, clean_and_reformat_code, padding_commit_code, mapping_dict_msg, mapping_dict_code, convert_msg_to_label
 
 class CustomDataset(Dataset):
     def __init__(self, added_code_list, removed_code_list, pad_token_id, labels, max_seq_length):
@@ -31,9 +29,9 @@ class CustomDataset(Dataset):
         num_padding = self.max_seq_length - len(removed_code)
         removed_code += [self.pad_token_id] * num_padding
 
-        label = torch.tensor(self.labels[idx], dtype=torch.float32, device=DEVICE)
-        added_code = torch.tensor(added_code, device=DEVICE)
-        removed_code = torch.tensor(removed_code, device=DEVICE)
+        label = torch.tensor(self.labels[idx], dtype=torch.float32)
+        added_code = torch.tensor(added_code)
+        removed_code = torch.tensor(removed_code)
 
         return {
             'added_code': added_code,
