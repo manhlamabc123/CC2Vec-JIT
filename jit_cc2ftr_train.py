@@ -8,7 +8,7 @@ from jit_cc2ftr_model import HierachicalRNN
 from global_variables import *
 
 def train_model(data, params):
-    code_loader, dict_msg, dict_code = data
+    code_loader, _, dict_code = data
     # batches = mini_batches(X_added_code=None, X_removed_code=None, Y=pad_msg_labels, mini_batch_size=params.batch_size)
     params.cuda = (not params.no_cuda) and torch.cuda.is_available()
     del params.no_cuda
