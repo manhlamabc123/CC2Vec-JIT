@@ -22,7 +22,7 @@ def train_model(data, params):
         params.class_num = pad_msg_labels.shape[1]
 
     # Device configuration
-    params.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    params.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = HierachicalRNN(args=params)
     if torch.cuda.is_available():
         model = model.cuda()
@@ -42,6 +42,7 @@ def train_model(data, params):
             labels = torch.cuda.FloatTensor(labels)
             optimizer.zero_grad()
             predict = model.forward(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word)
+            print(predict.size(), labels.size())
             loss = criterion(predict, labels)
             loss.backward()
             total_loss += loss
