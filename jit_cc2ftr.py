@@ -1,6 +1,6 @@
 import argparse
 import pickle
-import numpy as np 
+import torch
 from jit_padding import padding_message, clean_and_reformat_code, padding_commit_code, mapping_dict_msg, mapping_dict_code, convert_msg_to_label
 from jit_cc2ftr_train import train_model
 from jit_cc2ftr_extracted import extracted_cc2ftr
@@ -51,7 +51,8 @@ def read_args():
     return parser
 
 if __name__ == '__main__':
-    params = read_args().parse_args()    
+    params = read_args().parse_args()
+    params.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     
     if params.train is True:
         train_data = pickle.load(open(params.train_data, 'rb'))

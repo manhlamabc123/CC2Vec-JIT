@@ -10,8 +10,6 @@ def train_model(data, params):
     pad_added_code, pad_removed_code, pad_msg_labels, dict_msg, dict_code = data
     batches = mini_batches(X_added_code=pad_added_code, X_removed_code=pad_removed_code, Y=pad_msg_labels, 
                             mini_batch_size=params.batch_size)
-    params.cuda = (not params.no_cuda) and torch.cuda.is_available()
-    del params.no_cuda
 
     params.save_dir = os.path.join(params.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     params.vocab_code = len(dict_code)    
@@ -22,10 +20,9 @@ def train_model(data, params):
         params.class_num = pad_msg_labels.shape[1]
 
     # Device configuration
-    params.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = HierachicalRNN(args=params)
     if torch.cuda.is_available():
-        model = model.cuda()
+        model = model.to(params.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
@@ -39,10 +36,9 @@ def train_model(data, params):
             state_hunk = model.init_hidden_hunk()
 
             pad_added_code, pad_removed_code, labels = batch
-            labels = torch.cuda.FloatTensor(labels)
+            labels = torch.tensor(labels, device=params.device)
             optimizer.zero_grad()
-            predict = model.forward(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word)
-            print(predict.size(), labels.size())
+            predict = model.forward(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word, params)
             loss = criterion(predict, labels)
             loss.backward()
             total_loss += loss
