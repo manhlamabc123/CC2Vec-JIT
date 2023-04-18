@@ -64,11 +64,11 @@ class HierachicalRNN(nn.Module):
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
         # Word Encoder
-        self.wordRNN = WordRNN(self.vocab_size, self.embed_size, self.batch_size, self.hidden_size)
+        self.wordRNN = WordRNN()
         # Sentence Encoder
-        self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
+        self.sentRNN = SentRNN()
         # Hunk Encoder
-        self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
+        self.hunkRNN = HunkRNN()
 
         # standard neural network layer
         self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
