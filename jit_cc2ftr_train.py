@@ -30,15 +30,10 @@ def train_model(data, params):
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(batches):
-            # reset the hidden state of hierarchical attention model
-            state_word = model.init_hidden_word()
-            state_sent = model.init_hidden_sent()
-            state_hunk = model.init_hidden_hunk()
-
             pad_added_code, pad_removed_code, labels = batch
             labels = torch.tensor(labels, device=params.device)
             optimizer.zero_grad()
-            predict = model.forward(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word, params)
+            predict = model.forward(pad_added_code, pad_removed_code, params)
             loss = criterion(predict, labels)
             loss.backward()
             total_loss += loss

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
+from transformers import RobertaModel
 
 # Make the the multiple attention with word vectors.
 def attention_mul(rnn_outputs, att_weights):
@@ -20,72 +21,36 @@ def attention_mul(rnn_outputs, att_weights):
 
 # The word RNN model for generating a sentence vector
 class WordRNN(nn.Module):
-    def __init__(self, vocab_size, embed_size, batch_size, hidden_size):
+    def __init__(self):
         super(WordRNN, self).__init__()
-        self.batch_size = batch_size
-        self.embed_size = embed_size
-        self.hidden_size = hidden_size
         # Word Encoder
-        self.embed = nn.Embedding(vocab_size, embed_size)
-        self.wordRNN = nn.GRU(embed_size, hidden_size, bidirectional=True)
-        # Word Attention
-        self.wordattn = nn.Linear(2 * hidden_size, 2 * hidden_size)
-        self.attn_combine = nn.Linear(2 * hidden_size, 2 * hidden_size, bias=False)
+        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
-    def forward(self, inp, hid_state):
-        emb_out = self.embed(inp)
-
-        out_state, hid_state = self.wordRNN(emb_out, hid_state)
-
-        word_annotation = self.wordattn(out_state)
-        attn = F.softmax(self.attn_combine(word_annotation), dim=1)
-
-        sent = attention_mul(out_state, attn)
-        return sent, hid_state
-
-
+    def forward(self, inp):
+        outputs = self.codeBERT(inp)
+        return outputs[0]
+    
 # The sentence RNN model for generating a hunk vector
 class SentRNN(nn.Module):
-    def __init__(self, sent_size, hidden_size):
+    def __init__(self):
         super(SentRNN, self).__init__()
-        # Sentence Encoder
-        self.sent_size = sent_size
-        self.sentRNN = nn.GRU(sent_size, hidden_size, bidirectional=True)
+        # Sent Encoder
+        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
-        # Sentence Attention
-        self.sentattn = nn.Linear(2 * hidden_size, 2 * hidden_size)
-        self.attn_combine = nn.Linear(2 * hidden_size, 2 * hidden_size, bias=False)
-
-    def forward(self, inp, hid_state):
-        out_state, hid_state = self.sentRNN(inp, hid_state)
-
-        sent_annotation = self.sentattn(out_state)
-        attn = F.softmax(self.attn_combine(sent_annotation), dim=1)
-
-        sent = attention_mul(out_state, attn)
-        return sent, hid_state
-
+    def forward(self, inp):
+        outputs = self.codeBERT(inp)
+        return outputs[0]
 
 # The hunk RNN model for generating the vector representation for the instance
 class HunkRNN(nn.Module):
-    def __init__(self, hunk_size, hidden_size):
+    def __init__(self):
         super(HunkRNN, self).__init__()
         # Sentence Encoder
-        self.hunk_size = hunk_size
-        self.hunkRNN = nn.GRU(hunk_size, hidden_size, bidirectional=True)
+        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
-        # Sentence Attention
-        self.hunkattn = nn.Linear(2 * hidden_size, 2 * hidden_size)
-        self.attn_combine = nn.Linear(2 * hidden_size, 2 * hidden_size, bias=False)
-
-    def forward(self, inp, hid_state):
-        out_state, hid_state = self.hunkRNN(inp, hid_state)
-
-        hunk_annotation = self.hunkattn(out_state)
-        attn = F.softmax(self.attn_combine(hunk_annotation), dim=1)
-
-        hunk = attention_mul(out_state, attn)
-        return hunk, hid_state
+    def forward(self, inp):
+        outputs = self.codeBERT(inp)
+        return outputs[0]
 
 # The HAN model
 class HierachicalRNN(nn.Module):
@@ -94,7 +59,6 @@ class HierachicalRNN(nn.Module):
         self.vocab_size = args.vocab_code
         self.batch_size = args.batch_size
         self.embed_size = args.embed_size
-        self.hidden_size = args.hidden_size
         self.cls = args.class_num
 
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
@@ -119,8 +83,7 @@ class HierachicalRNN(nn.Module):
         self.fc2 = nn.Linear(2 * self.hidden_size, self.cls)
         self.sigmoid = nn.Sigmoid()
 
-    def forward_code(self, x, hid_state, params):
-        hid_state_hunk, hid_state_sent, hid_state_word = hid_state
+    def forward_code(self, x, params):
         n_batch, n_hunk, n_line = x.shape[0], x.shape[1], x.shape[2]
         # i: hunk; j: line; k: batch
         hunks = None
@@ -130,18 +93,16 @@ class HierachicalRNN(nn.Module):
                 words = [x[k][i][j] for k in range(n_batch)]
                 words = np.array(words)
                 words = torch.tensor(words, device=params.device).view(-1, self.batch_size)
-                sent, state_word = self.wordRNN(words, hid_state_word)
+                sent= self.wordRNN(words)
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
-            hunk, state_sent = self.sentRNN(sents, hid_state_sent)
+            hunk= self.sentRNN(sents)
             hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
         hunks = torch.mean(hunks, dim=0)  # hunk features
         return hunks
 
-    def forward(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word, params):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
-
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state, params=params)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state, params=params)
+    def forward(self, added_code, removed_code, params):
+        x_added_code = self.forward_code(x=added_code, params=params)
+        x_removed_code = self.forward_code(x=removed_code, params=params)
 
         x_added_code = x_added_code.view(self.batch_size, self.embed_size)
         x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
@@ -162,11 +123,9 @@ class HierachicalRNN(nn.Module):
         out = self.sigmoid(out).squeeze(1)
         return out
 
-    def forward_commit_embeds_diff(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word, params):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
-
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state, params=params)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state, params=params)
+    def forward_commit_embeds_diff(self, added_code, removed_code, params):
+        x_added_code = self.forward_code(x=added_code, params=params)
+        x_removed_code = self.forward_code(x=removed_code, params=params)
 
         x_added_code = x_added_code.view(self.batch_size, self.embed_size)
         x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
@@ -224,12 +183,3 @@ class HierachicalRNN(nn.Module):
         code = torch.cat((removed_code, added_code), dim=1)
         V_output = self.V_nn_tensor(code)
         return F.relu(W_output + V_output)
-
-    def init_hidden_hunk(self):
-        return Variable(torch.zeros(2, self.batch_size, self.hidden_size)).cuda()
-
-    def init_hidden_sent(self):
-        return Variable(torch.zeros(2, self.batch_size, self.hidden_size)).cuda()
-
-    def init_hidden_word(self):
-        return Variable(torch.zeros(2, self.batch_size, self.hidden_size)).cuda()
