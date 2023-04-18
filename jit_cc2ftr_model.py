@@ -59,6 +59,7 @@ class HierachicalRNN(nn.Module):
         self.vocab_size = args.vocab_code
         self.batch_size = args.batch_size
         self.embed_size = args.embed_size
+        self.hidden_size = args.hidden_size
         self.cls = args.class_num
 
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
@@ -92,7 +93,7 @@ class HierachicalRNN(nn.Module):
             for j in range(n_line):
                 words = [x[k][i][j] for k in range(n_batch)]
                 words = np.array(words)
-                words = torch.tensor(words, device=params.device).view(-1, self.batch_size)
+                words = torch.tensor(words, device=params.device).view(self.batch_size, -1)
                 sent= self.wordRNN(words)
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
             hunk= self.sentRNN(sents)
