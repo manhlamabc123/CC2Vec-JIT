@@ -5,15 +5,18 @@ import pickle
 
 def extracted_cc2ftr(data, params):
     # Split data
-    code_loader, _, dict_code = data
+    code_loader, pad_msg_labels, _, dict_code = data
 
     # Set up param
     params.vocab_code = len(dict_code)    
-    params.class_num = 1
+    if len(pad_msg_labels.shape) == 1:
+        params.class_num = 1
+    else:
+        params.class_num = pad_msg_labels.shape[1]
 
     # Device configuration
-    model = HierachicalRNN(args=params)
-    model.load_state_dict(torch.load(params.load_model)).to(params.device)
+    model = HierachicalRNN(args=params).to(params.device)
+    model.load_state_dict(torch.load(params.load_model))
 
     model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
     commit_ftrs = []
