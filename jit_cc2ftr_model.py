@@ -19,32 +19,10 @@ def attention_mul(rnn_outputs, att_weights):
             attn_vectors = torch.cat((attn_vectors, h_i), 0)
     return torch.sum(attn_vectors, 0).unsqueeze(0)
 
-# The word RNN model for generating a sentence vector
-class WordRNN(nn.Module):
-    def __init__(self):
-        super(WordRNN, self).__init__()
-        # Word Encoder
-        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
-
-    def forward(self, inp):
-        outputs = self.codeBERT(inp)
-        return outputs[0]
-    
-# The sentence RNN model for generating a hunk vector
-class SentRNN(nn.Module):
-    def __init__(self):
-        super(SentRNN, self).__init__()
-        # Sent Encoder
-        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
-
-    def forward(self, inp):
-        outputs = self.codeBERT(inp)
-        return outputs[0]
-
 # The hunk RNN model for generating the vector representation for the instance
-class HunkRNN(nn.Module):
+class CodeBERT(nn.Module):
     def __init__(self):
-        super(HunkRNN, self).__init__()
+        super(CodeBERT, self).__init__()
         # Sentence Encoder
         self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
@@ -65,11 +43,7 @@ class HierachicalRNN(nn.Module):
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
         # Word Encoder
-        self.wordRNN = WordRNN()
-        # Sentence Encoder
-        self.sentRNN = SentRNN()
-        # Hunk Encoder
-        self.hunkRNN = HunkRNN()
+        self.codeBERT = CodeBERT()
 
         # standard neural network layer
         self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
@@ -94,9 +68,10 @@ class HierachicalRNN(nn.Module):
                 words = [x[k][i][j] for k in range(n_batch)]
                 words = np.array(words)
                 words = torch.tensor(words, device=params.device).view(self.batch_size, -1)
-                sent= self.wordRNN(words)
+                print(words.size())
+                sent= self.codeBERT(words)
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
-            hunk= self.sentRNN(sents)
+            hunk= self.codeBERT(sents)
             hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
         hunks = torch.mean(hunks, dim=0)  # hunk features
         return hunks

@@ -20,13 +20,11 @@ def train_model(data, params):
         params.class_num = pad_msg_labels.shape[1]
 
     # Device configuration
-    model = HierachicalRNN(args=params)
-    if torch.cuda.is_available():
-        model = model.to(params.device)
+    model = HierachicalRNN(args=params).to(params.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
-    batches = batches[:10]
+    # batches = batches[:10]
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(batches):
