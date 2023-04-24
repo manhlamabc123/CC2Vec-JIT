@@ -4,3 +4,11 @@ jit_extract_qt
 jit_extract_openstack
 snapshot
 __pycache__
+jit_evaluate_jit_openstack.sh
+jit_evaluate_jit_qt.sh
+jit_extract_openstack.sh
+jit_extract_qt.sh
+jit_train_jit_openstack.sh
+jit_train_jit_qt.sh
+jit_train_openstack.sh
+jit_train_qt.sh
