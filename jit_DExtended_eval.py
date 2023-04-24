@@ -3,6 +3,8 @@ from jit_utils import mini_batches_DExtended
 from sklearn.metrics import roc_auc_score    
 import torch 
 from tqdm import tqdm
+from sklearn.metrics import classification_report
+import pandas as pd
 
 def evaluation_model(data, params):
     cc2ftr, pad_msg, pad_code, labels, dict_msg, dict_code = data
@@ -45,4 +47,14 @@ def evaluation_model(data, params):
             all_label += labels.tolist()
 
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
+
+    # convert probabilities to binary predictions
+    y_pred = [int(p >= 0.5) for p in all_predict]
+    target_names = ['Clean', 'Defect']
+    report = classification_report(all_label, y_pred, target_names=target_names, output_dict=True)
+    # create DataFrame from report
+    df = pd.DataFrame(report).transpose()
+
+    # write DataFrame to CSV file
+    df.to_csv('cc2vec_codeBERT_mean.csv')
     print('Test data -- AUC score:', auc_score)
