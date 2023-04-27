@@ -16,7 +16,7 @@ def extracted_cc2ftr(data, params):
 
     # Device configuration
     model = HierachicalRNN(args=params).to(params.device)
-    model.load_state_dict(torch.load(params.load_model))
+    model.load_state_dict(torch.load(params.load_model), strict=False)
 
     model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
     commit_ftrs = []

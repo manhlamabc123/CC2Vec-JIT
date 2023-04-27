@@ -20,6 +20,7 @@ def train_model(data, params):
 
     # Create model, optimizer, criterion
     model = HierachicalRNN(args=params).to(params.device)
+    model = torch.compile(model, backend="inductor")
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
     
@@ -35,7 +36,7 @@ def train_model(data, params):
             optimizer.zero_grad()
 
             # Forward
-            predict = model.forward(added_code, removed_code)
+            predict = model(added_code, removed_code)
 
             # Calculate loss
             loss = criterion(predict, labels)

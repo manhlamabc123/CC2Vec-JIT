@@ -19,6 +19,9 @@ class HierachicalRNN(nn.Module):
     
         self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
+        for param in self.codeBERT.base_model.parameters():
+            param.requires_grad = False
+
         # standard neural network layer
         self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
 
@@ -40,8 +43,8 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code)
         x_removed_code = self.forward_code(x=removed_code)
         
-        x_added_code = torch.mean(x_added_code, dim=1)
-        x_removed_code = torch.mean(x_removed_code, dim=1)
+        x_added_code= x_added_code[:, 0]
+        x_removed_code = x_removed_code[:, 0]
         
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
@@ -63,8 +66,8 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code)
         x_removed_code = self.forward_code(x=removed_code)
 
-        x_added_code = torch.mean(x_added_code, dim=1)
-        x_removed_code = torch.mean(x_removed_code, dim=1)
+        x_added_code= x_added_code[:, 0]
+        x_removed_code = x_removed_code[:, 0]
 
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
