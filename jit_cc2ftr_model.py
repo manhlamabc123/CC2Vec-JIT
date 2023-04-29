@@ -43,8 +43,8 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code)
         x_removed_code = self.forward_code(x=removed_code)
         
-        x_added_code= x_added_code[:, 0]
-        x_removed_code = x_removed_code[:, 0]
+        x_added_code= x_added_code[:, -1]
+        x_removed_code = x_removed_code[:, -1]
         
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
@@ -66,8 +66,8 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code)
         x_removed_code = self.forward_code(x=removed_code)
 
-        x_added_code= x_added_code[:, 0]
-        x_removed_code = x_removed_code[:, 0]
+        x_added_code= x_added_code[:, -1]
+        x_removed_code = x_removed_code[:, -1]
 
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
