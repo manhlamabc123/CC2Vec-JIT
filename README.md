@@ -3,6 +3,9 @@
 ## How to run
 
 ### Branches
+```
+git checkout [branch]
+```
 * codeBERT_first: using `output[0][:, 0]`
 * codeBERT_last: using `output[0][:, -1]`
 * codeBERT_max: using `torch.max()`
