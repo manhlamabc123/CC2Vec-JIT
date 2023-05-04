@@ -1,4 +1,4 @@
-# My-CC2Vec-JIT-
+# CC2Vec & DeepJIT
 
 ## How to run
 
