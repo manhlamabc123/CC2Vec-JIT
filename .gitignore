@@ -12,3 +12,6 @@ jit_train_jit_openstack.sh
 jit_train_jit_qt.sh
 jit_train_openstack.sh
 jit_train_qt.sh
+jit_extract_openstack.pkl
+test.ipynb
+openstack
