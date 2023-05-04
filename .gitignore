@@ -14,3 +14,5 @@ jit_train_openstack.sh
 jit_train_qt.sh
 test.ipynb
 jit_extract_openstack.pkl
+cc2vec
+cross

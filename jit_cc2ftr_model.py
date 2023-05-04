@@ -97,11 +97,11 @@ class HierachicalRNN(nn.Module):
 
     def cosine_similarity(self, added_code, removed_code):
         cosine = nn.CosineSimilarity(eps=1e-6)
-        return cosine(added_code, removed_code).view(self.batch_size, 1)
+        return cosine(added_code, removed_code).view(added_code.shape[0], 1)
 
     def euclidean_similarity(self, added_code, removed_code):
         euclidean = nn.PairwiseDistance(p=2)
-        return euclidean(added_code, removed_code).view(self.batch_size, 1)
+        return euclidean(added_code, removed_code).view(added_code.shape[0], 1)
 
     def standard_neural_network_layer(self, added_code, removed_code):
         concat = torch.cat((removed_code, added_code), dim=1)
@@ -112,11 +112,11 @@ class HierachicalRNN(nn.Module):
     def neural_network_tensor_layer(self, added_code, removed_code):
         output_one = self.W_nn_tensor_one(removed_code)
         output_one = torch.mul(output_one, added_code)
-        output_one = torch.sum(output_one, dim=1).view(self.batch_size, 1)
+        output_one = torch.sum(output_one, dim=1).view(added_code.shape[0], 1)
 
         output_two = self.W_nn_tensor_two(removed_code)
         output_two = torch.mul(output_two, added_code)
-        output_two = torch.sum(output_two, dim=1).view(self.batch_size, 1)
+        output_two = torch.sum(output_two, dim=1).view(added_code.shape[0], 1)
 
         W_output = torch.cat((output_one, output_two), dim=1)
         code = torch.cat((removed_code, added_code), dim=1)

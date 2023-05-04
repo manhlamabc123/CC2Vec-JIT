@@ -72,32 +72,22 @@ def preprocess_data(params, max_seq_length: int = 512):
     if params.train is True:
         # Load train data
         train_data = pickle.load(open(params.train_data, 'rb'))
-        train_ids, train_labels, train_messages, train_codes = train_data
-
-        # Load test data
-        test_data = pickle.load(open(params.test_data, 'rb'))
-        test_ids, test_labels, test_messages, test_codes = test_data
+        ids, labels, msgs, codes = train_data
     
     elif params.predict is True:
         # Load predict data
         predict_data = pickle.load(open(params.predict_data, 'rb'))
-        ids, labels, messages, codes = predict_data
+        ids, labels, msgs, codes = predict_data
 
     # Load dictionary
     dictionary = pickle.load(open(params.dictionary_data, 'rb'))
     dict_msg, dict_code = dictionary  
 
     # Combine train data and test data into data
-    if params.train is True:
-        ids = train_ids + test_ids
-        labels = list(train_labels) + list(test_labels)
-        msgs = train_messages + test_messages
-        codes = train_codes + test_codes
-    elif params.predict is True:
-        ids = ids
-        labels = list(labels)
-        msgs = messages
-        codes = codes
+    ids = ids
+    labels = list(labels)
+    msgs = msgs
+    codes = codes
 
     # Handling messages
     pad_msg = padding_message(data=msgs, max_length=params.msg_length)
