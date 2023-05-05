@@ -29,8 +29,10 @@ def train_model(data, params):
         total_loss = 0
         for batch in tqdm(code_loader):
             # Extract data from DataLoader
-            added_code = batch["added_code"].to(params.device)
-            removed_code = batch["removed_code"].to(params.device)
+            added_code = batch["added_code"]
+            added_code = {k: v.to(params.device) for k, v in added_code.items()}
+            removed_code = batch["removed_code"]
+            removed_batch = {k: v.to(params.device) for k, v in removed_batch.items()}
             labels = batch["labels"].to(params.device)
             
             optimizer.zero_grad()

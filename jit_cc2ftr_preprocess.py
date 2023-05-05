@@ -5,20 +5,20 @@ from transformers import T5Tokenizer
 import numpy as np
 
 class CustomDataset(Dataset):
-    def __init__(self, added_code_list, removed_code_list, labels, tokenizer, max_length):
+    def __init__(self, added_code_list, removed_code_list, tokenizer, pad_token_id, labels, max_seq_length):
         self.added_code_list = added_code_list
         self.removed_code_list = removed_code_list
-        self.labels = labels
         self.tokenizer = tokenizer
-        self.max_length = max_length
-
+        self.pad_token_id = pad_token_id
+        self.max_seq_length = max_seq_length
+        self.labels = labels
+    
     def __len__(self):
         return len(self.added_code_list)
-
-    def __getitem__(self, index):
-        # return self.data[index]
+    
+    def __getitem__(self, idx):
         added_code = self.added_code_list[idx]
-        
+
         removed_code = self.removed_code_list[idx]
 
         labels = torch.tensor(self.labels[idx], dtype=torch.float32)
@@ -30,9 +30,38 @@ class CustomDataset(Dataset):
         }
 
     def collate_fn(self, batch):
-        added_code_tokenized = self.tokenizer.batch_encode_plus(batch[], return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
-        removed_code_tokenized = self.tokenizer.batch_encode_plus(batch, return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
-        return {k: v.squeeze(0) for k, v in input_data_tokenized.items()}
+        input_data = {
+            'added_code': [item['added_code'] for item in batch],
+            'removed_code': [item['removed_code'] for item in batch]
+        }
+
+        # tokenize and pad the code sequences
+        added_code_tokenized = self.tokenizer.batch_encode_plus(
+            input_data['added_code'],
+            return_tensors="pt", 
+            padding='max_length', 
+            truncation=True, 
+            max_length=self.max_seq_length
+        )
+
+        # tokenize and pad the code sequences
+        removed_code_tokenized = self.tokenizer.batch_encode_plus(
+            input_data['removed_code'],
+            return_tensors="pt", 
+            padding='max_length', 
+            truncation=True, 
+            max_length=self.max_seq_length
+        )
+        
+        # create the labels tensor
+        labels = torch.stack([item['labels'] for item in batch])
+
+        # return the tokenized input data and labels
+        return {
+            'added_code': {k: v.squeeze(0) for k, v in added_code_tokenized.items()},
+            'removed_code': {k: v.squeeze(0) for k, v in removed_code_tokenized.items()},
+            'labels': labels
+        }
     
 def padding_length(line, max_length):
     line_length = len(line.split())

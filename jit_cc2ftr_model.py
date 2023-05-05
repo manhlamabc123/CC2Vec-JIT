@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
-from transformers import RobertaModel
+from transformers import T5Model
 
 # The HAN model
 class HierachicalRNN(nn.Module):
@@ -17,9 +17,9 @@ class HierachicalRNN(nn.Module):
 
         self.dropout = nn.Dropout(args.dropout_keep_prob)
     
-        self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
+        self.codeT5 = T5Model.from_pretrained("Salesforce/codet5-base")
 
-        for param in self.codeBERT.base_model.parameters():
+        for param in self.codeT5.base_model.parameters():
             param.requires_grad = False
 
         # standard neural network layer
@@ -36,15 +36,15 @@ class HierachicalRNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward_code(self, x):
-        outputs = self.codeBERT(x)
+        outputs = self.codeT5.encoder(**x)['last_hidden_state'][:, 0, :]
         return outputs[0]
 
     def forward(self, added_code, removed_code):
         x_added_code = self.forward_code(x=added_code)
         x_removed_code = self.forward_code(x=removed_code)
         
-        x_added_code= x_added_code[:, 0]
-        x_removed_code = x_removed_code[:, 0]
+        print(x_added_code.size())
+        print(x_removed_code.size())
         
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
