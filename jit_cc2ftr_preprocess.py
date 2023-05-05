@@ -5,40 +5,20 @@ from transformers import RobertaTokenizer
 import numpy as np
 
 class CustomDataset(Dataset):
-    def __init__(self, added_code_list, removed_code_list, pad_token_id, labels, max_seq_length):
-        self.added_code_list = added_code_list
-        self.removed_code_list = removed_code_list
-        self.pad_token_id = pad_token_id
-        self.max_seq_length = max_seq_length
-        self.labels = labels
-    
+    def __init__(self, data, tokenizer, max_length):
+        self.data = data
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
     def __len__(self):
-        return len(self.added_code_list)
-    
-    def __getitem__(self, idx):
-        # truncate the code sequence if it exceeds max_seq_length
-        added_code = self.added_code_list[idx][:self.max_seq_length]
-        
-        # pad the code sequence if it is shorter than max_seq_length
-        num_padding = self.max_seq_length - len(added_code)
-        added_code += [self.pad_token_id] * num_padding
+        return len(self.data)
 
-        # truncate the code sequence if it exceeds max_seq_lengthadded
-        removed_code = self.removed_code_list[idx][:self.max_seq_length]
-        
-        # pad the code sequence if it is shorter than max_seq_length
-        num_padding = self.max_seq_length - len(removed_code)
-        removed_code += [self.pad_token_id] * num_padding
+    def __getitem__(self, index):
+        return self.data[index]
 
-        labels = torch.tensor(self.labels[idx], dtype=torch.float32)
-        added_code = torch.tensor(added_code)
-        removed_code = torch.tensor(removed_code)
-
-        return {
-            'added_code': added_code,
-            'removed_code': removed_code,
-            'labels': labels
-        }
+    def collate_fn(self, batch):
+        input_data_tokenized = self.tokenizer.batch_encode_plus(batch, return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
+        return {k: v.squeeze(0) for k, v in input_data_tokenized.items()}
     
 def padding_length(line, max_length):
     line_length = len(line.split())
@@ -98,26 +78,24 @@ def preprocess_data(params, max_seq_length: int = 512):
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 
     # Preprocessing codes
-    added_code_list = []
-    removed_code_list = []
+    added_list = []
+    removed_list = []
 
-    for commit in codes:
-        added_code_tokens = [tokenizer.cls_token]
-        removed_code_tokens = [tokenizer.cls_token]
-        for hunk in commit:
-            added_code = " ".join(hunk["added_code"])
-            removed_code = " ".join(hunk["removed_code"])
-            added_code_tokens += tokenizer.tokenize(added_code) + [tokenizer.sep_token]
-            removed_code_tokens += tokenizer.tokenize(removed_code) + [tokenizer.sep_token]
-        added_code_tokens += [tokenizer.eos_token]
-        removed_code_tokens += [tokenizer.eos_token]
-        added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
-        removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
-        added_code_list.append(added_tokens_ids)
-        removed_code_list.append(removed_tokens_ids)
+    for cc_idx in tqdm(range(len(codes))): 
+        added_code = ""
+        removed_code = ""
+        for i in range(len(train_codes[cc_idx])):
+            if codes[cc_idx][i]['added_code'] != []:
+                added_code += codes[cc_idx][i]['added_code'][0] + "</s>"
+            if codes[cc_idx][i]['removed_code'] != []:
+                removed_code += codes[cc_idx][i]['removed_code'][0] + "</s>"
+        added_list.append(added_code)
+        removed_list.append(removed_code)
 
     # Using Pytorch Dataset and DataLoader
-    code_dataset = CustomDataset(added_code_list, removed_code_list, tokenizer.pad_token_id, pad_msg_labels, max_seq_length)
-    code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size)
+    added_dataset = MyDataset(added_list, tokenizer, max_seq_length)
+    removed_dataset = MyDataset(removed_list, tokenizer, max_seq_length)
+    added_dataloader = DataLoader(added_dataset, batch_size=params.batch_size, collate_fn=added_dataset.collate_fn, shuffle=False)
+    removed_dataloader = DataLoader(removed_dataset, batch_size=params.batch_size, collate_fn=removed_dataset.collate_fn, shuffle=False)
 
-    return (code_dataloader, pad_msg_labels, dict_msg, dict_code)
+    return (added_dataloader, removed_dataloader, pad_msg_labels, dict_msg, dict_code)
