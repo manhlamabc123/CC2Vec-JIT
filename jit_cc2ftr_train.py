@@ -8,7 +8,7 @@ from jit_cc2ftr_model import HierachicalRNN
 
 def train_model(data, params):
     # Split data
-    code_loader, pad_msg_labels, _, dict_code = data
+    added_dataloader, removed_dataloader, pad_msg_labels, _, dict_code = data
 
     # Set up param
     params.save_dir = os.path.join(params.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))

@@ -1,23 +1,37 @@
 import pickle
 from torch.utils.data import Dataset, DataLoader
 import torch
-from transformers import RobertaTokenizer
+from transformers import T5Tokenizer
 import numpy as np
 
 class CustomDataset(Dataset):
-    def __init__(self, data, tokenizer, max_length):
-        self.data = data
+    def __init__(self, added_code_list, removed_code_list, labels, tokenizer, max_length):
+        self.added_code_list = added_code_list
+        self.removed_code_list = removed_code_list
+        self.labels = labels
         self.tokenizer = tokenizer
         self.max_length = max_length
 
     def __len__(self):
-        return len(self.data)
+        return len(self.added_code_list)
 
     def __getitem__(self, index):
-        return self.data[index]
+        # return self.data[index]
+        added_code = self.added_code_list[idx]
+        
+        removed_code = self.removed_code_list[idx]
+
+        labels = torch.tensor(self.labels[idx], dtype=torch.float32)
+
+        return {
+            'added_code': added_code,
+            'removed_code': removed_code,
+            'labels': labels
+        }
 
     def collate_fn(self, batch):
-        input_data_tokenized = self.tokenizer.batch_encode_plus(batch, return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
+        added_code_tokenized = self.tokenizer.batch_encode_plus(batch[], return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
+        removed_code_tokenized = self.tokenizer.batch_encode_plus(batch, return_tensors="pt", padding='max_length', truncation=True, max_length=self.max_length)
         return {k: v.squeeze(0) for k, v in input_data_tokenized.items()}
     
 def padding_length(line, max_length):
@@ -75,7 +89,7 @@ def preprocess_data(params, max_seq_length: int = 512):
     pad_msg_labels = convert_msg_to_label(pad_msg=pad_msg, dict_msg=dict_msg)
 
     # CodeBERT tokenizer
-    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+    model = T5Model.from_pretrained("Salesforce/codet5-base")
 
     # Preprocessing codes
     added_list = []
@@ -93,9 +107,7 @@ def preprocess_data(params, max_seq_length: int = 512):
         removed_list.append(removed_code)
 
     # Using Pytorch Dataset and DataLoader
-    added_dataset = MyDataset(added_list, tokenizer, max_seq_length)
-    removed_dataset = MyDataset(removed_list, tokenizer, max_seq_length)
-    added_dataloader = DataLoader(added_dataset, batch_size=params.batch_size, collate_fn=added_dataset.collate_fn, shuffle=False)
-    removed_dataloader = DataLoader(removed_dataset, batch_size=params.batch_size, collate_fn=removed_dataset.collate_fn, shuffle=False)
+    code_dataset = CustomDataset(added_code_list, removed_code_list, pad_msg_labels, tokenizer, max_seq_length)
+    code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size, collate_fn=code_dataset.collate_fn, shuffle=False)
 
-    return (added_dataloader, removed_dataloader, pad_msg_labels, dict_msg, dict_code)
+    return (code_dataloader, pad_msg_labels, dict_msg, dict_code)
