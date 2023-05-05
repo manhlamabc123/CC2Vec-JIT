@@ -19,8 +19,8 @@ class HierachicalRNN(nn.Module):
     
         self.codeBERT = RobertaModel.from_pretrained("microsoft/codebert-base")
 
-        for param in self.codeBERT.base_model.parameters():
-            param.requires_grad = False
+        # for param in self.codeBERT.base_model.parameters():
+        #     param.requires_grad = False
 
         # standard neural network layer
         self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
