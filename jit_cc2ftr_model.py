@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
+from transformers import RobertaModel
 
 # Make the the multiple attention with word vectors.
 def attention_mul(rnn_outputs, att_weights):
@@ -104,7 +105,10 @@ class HierachicalRNN(nn.Module):
         # Sentence Encoder
         self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
         # Hunk Encoder
-        self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
+        self.hunkRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
+
+        # for param in self.codeBERT.base_model.parameters():
+        #     param.requires_grad = False
 
         # standard neural network layer
         self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
