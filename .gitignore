@@ -15,3 +15,7 @@ jit_train_qt.sh
 jit_extract_openstack.pkl
 test.ipynb
 openstack
+cc2vec_eval.sh
+cc2vec_train.sh
+deepjit_eval.sh
+deepjit_train.sh
