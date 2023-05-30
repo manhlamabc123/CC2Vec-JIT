@@ -29,7 +29,6 @@ def train_model(data, params):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
-    batches = batches[:10]
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(batches):
@@ -42,7 +41,6 @@ def train_model(data, params):
             labels = torch.cuda.FloatTensor(labels)
             optimizer.zero_grad()
             predict = model.forward(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word)
-            print(predict.size(), labels.size())
             loss = criterion(predict, labels)
             loss.backward()
             total_loss += loss
