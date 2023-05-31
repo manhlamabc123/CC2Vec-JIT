@@ -79,15 +79,11 @@ def preprocess_data(params, max_seq_length: int = 512):
         predict_data = pickle.load(open(params.predict_data, 'rb'))
         ids, labels, msgs, codes = predict_data
 
+    labels = list(labels)
+
     # Load dictionary
     dictionary = pickle.load(open(params.dictionary_data, 'rb'))
     dict_msg, dict_code = dictionary  
-
-    # Combine train data and test data into data
-    ids = ids
-    labels = list(labels)
-    msgs = msgs
-    codes = codes
 
     # Handling messages
     pad_msg = padding_message(data=msgs, max_length=params.msg_length)
@@ -97,27 +93,22 @@ def preprocess_data(params, max_seq_length: int = 512):
     # CodeBERT tokenizer
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 
-    # Preprocessing codes
-    added_code_list = []
-    removed_code_list = []
-
     for commit in codes:
-        added_code_tokens = [tokenizer.cls_token]
         removed_code_tokens = [tokenizer.cls_token]
         for hunk in commit:
             added_code = " ".join(hunk["added_code"])
             removed_code = " ".join(hunk["removed_code"])
-            added_code_tokens += tokenizer.tokenize(added_code) + [tokenizer.sep_token]
-            removed_code_tokens += tokenizer.tokenize(removed_code) + [tokenizer.sep_token]
-        added_code_tokens += [tokenizer.eos_token]
-        removed_code_tokens += [tokenizer.eos_token]
-        added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
-        removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
-        added_code_list.append(added_tokens_ids)
-        removed_code_list.append(removed_tokens_ids)
+            added_code_tokens = [tokenizer.cls_token] + tokenizer.tokenize(added_code) + [tokenizer.eos_token]
+            removed_code_tokens += [tokenizer.cls_token] + tokenizer.tokenize(removed_code) + [tokenizer.eos_token]
+            added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
+            removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
+            hunk["added_code"] = added_tokens_ids
+            hunk["removed_code"] = removed_tokens_ids
+
+    print(codes)
 
     # Using Pytorch Dataset and DataLoader
-    code_dataset = CustomDataset(added_code_list, removed_code_list, tokenizer.pad_token_id, pad_msg_labels, max_seq_length)
+    code_dataset = CustomDataset(codes, pad_msg_labels, tokenizer.pad_token_id, max_seq_length)
     code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size)
 
     return (code_dataloader, pad_msg_labels, dict_msg, dict_code)

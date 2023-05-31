@@ -11,9 +11,7 @@ def read_args():
 
     # Training our model
     parser.add_argument('-train', action='store_true', help='training attention model')
-
     parser.add_argument('-train_data', type=str, default='./data/jit/openstack_train.pkl', help='the directory of our training data')
-    parser.add_argument('-test_data', type=str, default='./data/jit/openstack_test.pkl', help='the directory of our testing data')
     parser.add_argument('-dictionary_data', type=str, default='./data/jit/openstack_dict.pkl', help='the directory of our dicitonary data')
 
     # Predicting our data
@@ -30,9 +28,6 @@ def read_args():
     parser.add_argument('--code_line', type=int, default=10, help='the number of LOC in each hunk of commit code')
     parser.add_argument('--code_length', type=int, default=64, help='the length of each LOC of commit code')
 
-    # Predicting our data
-    parser.add_argument('--predict', action='store_true', help='predicting testing data')
-
     # Number of parameters for Attention model
     parser.add_argument('-embed_size', type=int, default=768, help='the dimension of embedding vector')
     parser.add_argument('-hidden_size', type=int, default=32, help='the number of nodes in hidden layers')
@@ -41,7 +36,7 @@ def read_args():
     parser.add_argument('-learning_rate', type=float, default=1e-4, help='learning rate')
     parser.add_argument('-batch_size', type=int, default=8, help='batch size')
     parser.add_argument('-num_epochs', type=int, default=50, help='the number of epochs')    
-    parser.add_argument('-save-dir', type=str, default='snapshot', help='where to save the snapshot')    
+    parser.add_argument('-save-dir', type=str, default='snapshot', help='where to save the snapshot')
 
     # CUDA
     parser.add_argument('-device', type=int, default=-1,
