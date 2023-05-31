@@ -5,9 +5,8 @@ from transformers import RobertaTokenizer
 import numpy as np
 
 class CustomDataset(Dataset):
-    def __init__(self, added_code_list, removed_code_list, pad_token_id, labels, max_seq_length):
-        self.added_code_list = added_code_list
-        self.removed_code_list = removed_code_list
+    def __init__(self, codes, pad_token_id, labels, max_seq_length):
+        self.codes = codes
         self.pad_token_id = pad_token_id
         self.max_seq_length = max_seq_length
         self.labels = labels
@@ -17,7 +16,7 @@ class CustomDataset(Dataset):
     
     def __getitem__(self, idx):
         # truncate the code sequence if it exceeds max_seq_length
-        added_code = self.added_code_list[idx][:self.max_seq_length]
+        code = self.codes[idx][:self.max_seq_length]
         
         # pad the code sequence if it is shorter than max_seq_length
         num_padding = self.max_seq_length - len(added_code)
@@ -93,19 +92,20 @@ def preprocess_data(params, max_seq_length: int = 512):
     # CodeBERT tokenizer
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 
+    print(codes[1])
+
     for commit in codes:
-        removed_code_tokens = [tokenizer.cls_token]
         for hunk in commit:
             added_code = " ".join(hunk["added_code"])
             removed_code = " ".join(hunk["removed_code"])
             added_code_tokens = [tokenizer.cls_token] + tokenizer.tokenize(added_code) + [tokenizer.eos_token]
-            removed_code_tokens += [tokenizer.cls_token] + tokenizer.tokenize(removed_code) + [tokenizer.eos_token]
+            removed_code_tokens = [tokenizer.cls_token] + tokenizer.tokenize(removed_code) + [tokenizer.eos_token]
             added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
             removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
             hunk["added_code"] = added_tokens_ids
             hunk["removed_code"] = removed_tokens_ids
 
-    print(codes[0])
+    print(codes[1])
 
     # Using Pytorch Dataset and DataLoader
     code_dataset = CustomDataset(codes, pad_msg_labels, tokenizer.pad_token_id, max_seq_length)
