@@ -96,14 +96,18 @@ def preprocess_data(params, max_seq_length: int = 512):
 
     for commit in codes:
         for hunk in commit:
-            added_code = " ".join(hunk["added_code"])
-            removed_code = " ".join(hunk["removed_code"])
-            added_code_tokens = [tokenizer.cls_token] + tokenizer.tokenize(added_code) + [tokenizer.eos_token]
-            removed_code_tokens = [tokenizer.cls_token] + tokenizer.tokenize(removed_code) + [tokenizer.eos_token]
-            added_tokens_ids = tokenizer.convert_tokens_to_ids(added_code_tokens)
-            removed_tokens_ids = tokenizer.convert_tokens_to_ids(removed_code_tokens)
-            hunk["added_code"] = added_tokens_ids
-            hunk["removed_code"] = removed_tokens_ids
+            added_lines = []
+            removed_lines = []
+            for line in hunk["added_code"]:
+                line_tokens = [tokenizer.cls_token] + tokenizer.tokenize(line) + [tokenizer.eos_token]
+                line_tokens_ids = tokenizer.convert_tokens_to_ids(line_tokens)
+                added_lines.append(line_tokens_ids)
+            hunk["added_code"] = added_lines
+            for line in hunk["removed_code"]:
+                line_tokens = [tokenizer.cls_token] + tokenizer.tokenize(line) + [tokenizer.eos_token]
+                line_tokens_ids = tokenizer.convert_tokens_to_ids(line_tokens)
+                removed_lines.append(line_tokens_ids)
+            hunk["removed_code"] = removed_lines
 
     print(codes[1])
 
