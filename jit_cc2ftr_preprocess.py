@@ -16,8 +16,6 @@ class CustomDataset(Dataset):
     
     def __getitem__(self, idx):
         code = self.codes[idx]
-        for hunk in code:
-            for line in hunk["added_code"]:
 
         # pad the code sequence if it is shorter than max_seq_length
         num_padding = self.max_seq_length - len(added_code)
