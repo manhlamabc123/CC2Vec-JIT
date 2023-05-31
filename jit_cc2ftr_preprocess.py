@@ -105,7 +105,7 @@ def preprocess_data(params, max_seq_length: int = 512):
             hunk["added_code"] = added_tokens_ids
             hunk["removed_code"] = removed_tokens_ids
 
-    print(codes)
+    print(codes[0])
 
     # Using Pytorch Dataset and DataLoader
     code_dataset = CustomDataset(codes, pad_msg_labels, tokenizer.pad_token_id, max_seq_length)
