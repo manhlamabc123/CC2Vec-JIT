@@ -12,12 +12,13 @@ class CustomDataset(Dataset):
         self.labels = labels
     
     def __len__(self):
-        return len(self.added_code_list)
+        return len(self.codes)
     
     def __getitem__(self, idx):
-        # truncate the code sequence if it exceeds max_seq_length
-        code = self.codes[idx][:self.max_seq_length]
-        
+        code = self.codes[idx]
+        for hunk in code:
+            for line in hunk["added_code"]:
+
         # pad the code sequence if it is shorter than max_seq_length
         num_padding = self.max_seq_length - len(added_code)
         added_code += [self.pad_token_id] * num_padding
@@ -101,11 +102,17 @@ def preprocess_data(params, max_seq_length: int = 512):
             for line in hunk["added_code"]:
                 line_tokens = [tokenizer.cls_token] + tokenizer.tokenize(line) + [tokenizer.eos_token]
                 line_tokens_ids = tokenizer.convert_tokens_to_ids(line_tokens)
+                line_tokens_ids = line_tokens_ids[:max_seq_length]
+                num_padding = max_seq_length - len(line_tokens_ids)
+                line_tokens_ids += [tokenizer.pad_token_id] * num_padding
                 added_lines.append(line_tokens_ids)
             hunk["added_code"] = added_lines
             for line in hunk["removed_code"]:
                 line_tokens = [tokenizer.cls_token] + tokenizer.tokenize(line) + [tokenizer.eos_token]
                 line_tokens_ids = tokenizer.convert_tokens_to_ids(line_tokens)
+                line_tokens_ids = line_tokens_ids[:max_seq_length]
+                num_padding = max_seq_length - len(line_tokens_ids)
+                line_tokens_ids += [tokenizer.pad_token_id] * num_padding
                 removed_lines.append(line_tokens_ids)
             hunk["removed_code"] = removed_lines
 
