@@ -17,24 +17,10 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         code = self.codes[idx]
 
-        # pad the code sequence if it is shorter than max_seq_length
-        num_padding = self.max_seq_length - len(added_code)
-        added_code += [self.pad_token_id] * num_padding
-
-        # truncate the code sequence if it exceeds max_seq_lengthadded
-        removed_code = self.removed_code_list[idx][:self.max_seq_length]
-        
-        # pad the code sequence if it is shorter than max_seq_length
-        num_padding = self.max_seq_length - len(removed_code)
-        removed_code += [self.pad_token_id] * num_padding
-
         labels = torch.tensor(self.labels[idx], dtype=torch.float32)
-        added_code = torch.tensor(added_code)
-        removed_code = torch.tensor(removed_code)
 
         return {
-            'added_code': added_code,
-            'removed_code': removed_code,
+            'code': code,
             'labels': labels
         }
     
