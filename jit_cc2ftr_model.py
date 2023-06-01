@@ -147,9 +147,6 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
 
-        x_added_code = x_added_code.view(self.batch_size, self.embed_size)
-        x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
-
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
         cos = self.cosine_similarity(added_code=x_added_code, removed_code=x_removed_code)
@@ -172,9 +169,6 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
 
-        x_added_code = x_added_code.view(self.batch_size, self.embed_size)
-        x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
-
         subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
         multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
         cos = self.cosine_similarity(added_code=x_added_code, removed_code=x_removed_code)
@@ -189,9 +183,6 @@ class HierachicalRNN(nn.Module):
 
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-
-        x_added_code = x_added_code.view(self.batch_size, self.embed_size)
-        x_removed_code = x_removed_code.view(self.batch_size, self.embed_size)
 
         return torch.cat((x_added_code, x_removed_code), dim=1)
 
