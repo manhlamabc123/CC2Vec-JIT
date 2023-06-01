@@ -1,6 +1,7 @@
 import numpy as np
+from transformers import RobertaTokenizer
 
-def padding_commit_file(data, max_file, max_line, max_length):
+def padding_commit_file(data, max_file, max_line, max_length, tokenizer):
     new_commits = []
     for commit in data:
         new_commit = []
@@ -12,13 +13,14 @@ def padding_commit_file(data, max_file, max_line, max_length):
             num_added_file = max_file - len(commit)
             new_files = []
             for _ in range(num_added_file):
-                file = [('<NULL> ' * max_length).strip() for _ in range(max_line)]
+                pad_file = [tokenizer.cls_token_id] + [tokenizer.eos_token_id] + [tokenizer.pad_token_id] * (max_length - 2)
+                file = [pad_file for _ in range(max_line)]
                 new_files.append(file)
             new_commit = commit + new_files
         new_commits.append(new_commit)
     return new_commits
 
-def padding_commit_code_line(data, max_line, max_length):
+def padding_commit_code_line(data, max_line, max_length, tokenizer):
     new_commits = []
     for commit in data:
         new_files = []
@@ -32,48 +34,37 @@ def padding_commit_code_line(data, max_line, max_length):
                 num_added_line = max_line - len(file)
                 new_file = file
                 for _ in range(num_added_line):
-                    new_file.append(('<NULL> ' * max_length).strip())
+                    pad_file = [tokenizer.cls_token_id] + [tokenizer.eos_token_id] + [tokenizer.pad_token_id] * (max_length - 2)
+                    new_file.append(pad_file)
             new_files.append(new_file)
         new_commits.append(new_files)
     return new_commits
 
-def padding_commit_code_length(data, max_length):
+def padding_commit_code_length(data, max_length, tokenizer):
     commits = []
     for commit in data:
         new_commit = []
         for file in commit:
             new_file = []
             for line in file:
-                new_line = padding_length(line, max_length=max_length)
+                new_line = padding_length(line, max_length=max_length, tokenizer=tokenizer)
                 new_file.append(new_line)
             new_commit.append(new_file)
         commits.append(new_commit)
     return commits
 
-def padding_length(line, max_length):
-    line_length = len(line.split())
+def padding_length(line, max_length, tokenizer):
+    line_tokens = [tokenizer.cls_token] + tokenizer.tokenize(line) + [tokenizer.eos_token]
+    line_token_ids = tokenizer.convert_tokens_to_ids(line_tokens)
+    line_length = len(line_token_ids)
     if line_length < max_length:
-        return str(line + ' <NULL>' * (max_length - line_length)).strip()
+        num_padding = max_length - line_length
+        line_token_ids += [tokenizer.pad_token_id] * num_padding
+        return line_token_ids
     elif line_length > max_length:
-        line_split = line.split()
-        return ' '.join([line_split[i] for i in range(max_length)])
+        return line_token_ids[:max_length]
     else:
-        return line
-
-def convert_msg_to_label(pad_msg, dict_msg):
-    nrows, ncols = pad_msg.shape
-    labels = []
-    for i in range(nrows):
-        column = list(set(list(pad_msg[i, :])))
-        label = np.zeros(len(dict_msg))
-        for c in column:
-            label[c] = 1
-        labels.append(label)
-    return np.array(labels)
-
-def mapping_dict_msg(pad_msg, dict_msg):
-    return np.array(
-        [np.array([dict_msg[w.lower()] if w.lower() in dict_msg.keys() else dict_msg['<NULL>'] for w in line.split(' ')]) for line in pad_msg])
+        return line_token_ids
 
 def mapping_dict_code(pad_code, dict_code):
     new_pad_code = []
@@ -96,13 +87,15 @@ def mapping_dict_code(pad_code, dict_code):
     return np.array(new_pad_code)
 
 def padding_commit_code(data, max_file, max_line, max_length):
-    padding_length = padding_commit_code_length(data=data, max_length=max_length)
-    padding_line = padding_commit_code_line(padding_length, max_line=max_line, max_length=max_length)
+    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+    padding_length = padding_commit_code_length(data=data, max_length=max_length, tokenizer=tokenizer)
+    padding_line = padding_commit_code_line(padding_length, max_line=max_line, max_length=max_length, tokenizer=tokenizer)
     return padding_commit_file(
         data=padding_line,
         max_file=max_file,
         max_line=max_line,
         max_length=max_length,
+        tokenizer=tokenizer
     )
 
 def clean_and_reformat_code(data):
@@ -123,6 +116,3 @@ def clean_and_reformat_code(data):
             files.append(new_lines)
         new_diff_removed_code.append(files)
     return (new_diff_added_code, new_diff_removed_code)
-
-def padding_message(data, max_length):
-    return [padding_length(line=d, max_length=max_length) for d in data]
