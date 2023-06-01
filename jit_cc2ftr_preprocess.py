@@ -15,8 +15,8 @@ class CustomDataset(Dataset):
     
     def __getitem__(self, idx):
         labels = torch.tensor(self.labels[idx], dtype=torch.float32)
-        added_code = torch.tensor(self.added_codes[idx], dtype=torch.float32)
-        removed_code = torch.tensor(self.removed_codes[idx], dtype=torch.float32)
+        added_code = torch.tensor(self.added_codes[idx])
+        removed_code = torch.tensor(self.removed_codes[idx])
 
         return {
             'added_code': added_code,
@@ -52,7 +52,7 @@ def mapping_dict_msg(pad_msg, dict_msg):
 def padding_message(data, max_length):
     return [padding_length(line=d, max_length=max_length) for d in data]
 
-def preprocess_data(params, max_seq_length: int = 512):
+def preprocess_data(params):
     if params.train is True:
         # Load train data
         train_data = pickle.load(open(params.train_data, 'rb'))
@@ -76,8 +76,6 @@ def preprocess_data(params, max_seq_length: int = 512):
 
     # Handling codes
     added_code, removed_code = clean_and_reformat_code(codes)
-
-    print(added_code[0])
 
     pad_added_code = padding_commit_code(data=added_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
     pad_removed_code = padding_commit_code(data=removed_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)

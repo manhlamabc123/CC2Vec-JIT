@@ -28,6 +28,11 @@ def train_model(data, params):
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(code_loader):
+            # reset the hidden state of hierarchical attention model
+            state_word = model.init_hidden_word()
+            state_sent = model.init_hidden_sent()
+            state_hunk = model.init_hidden_hunk()            
+
             # Extract data from DataLoader
             added_code = batch["added_code"].to(params.device)
             removed_code = batch["removed_code"].to(params.device)
@@ -36,7 +41,7 @@ def train_model(data, params):
             optimizer.zero_grad()
 
             # Forward
-            predict = model(added_code, removed_code)
+            predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
 
             # Calculate loss
             loss = criterion(predict, labels)

@@ -101,11 +101,11 @@ class HierachicalRNN(nn.Module):
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
         # Word Encoder
-        self.wordRNN = WordRNN(self.vocab_size, self.embed_size, self.batch_size, self.hidden_size)
+        self.wordRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
         # Sentence Encoder
         self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
         # Hunk Encoder
-        self.hunkRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
+        self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
 
         # for param in self.codeBERT.base_model.parameters():
         #     param.requires_grad = False
@@ -131,11 +131,12 @@ class HierachicalRNN(nn.Module):
         for i in range(n_hunk):
             sents = None
             for j in range(n_line):
-                words = [x[k][i][j] for k in range(n_batch)]
-                words = np.array(words)
-                sent, state_word = self.wordRNN(torch.cuda.LongTensor(words).view(-1, self.batch_size), hid_state_word)
+                words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
+                words = torch.tensor(words, device='cuda')
+                sent = self.wordRNN(words.view(-1, self.batch_size))
+                sent = sent[0]
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
-            hunk, state_sent = self.sentRNN(sents, hid_state_sent)
+            hunk, _ = self.sentRNN(sents, hid_state_sent)
             hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
         hunks = torch.mean(hunks, dim=0)  # hunk features
         return hunks
