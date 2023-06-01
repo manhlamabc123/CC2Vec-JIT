@@ -95,6 +95,7 @@ class HierachicalRNN(nn.Module):
         self.vocab_size = args.vocab_code
         self.batch_size = args.batch_size
         self.embed_size = args.embed_size
+        self.codebert_embed_size = args.codebert_embed_size
         self.hidden_size = args.hidden_size
         self.cls = args.class_num
 
@@ -103,7 +104,7 @@ class HierachicalRNN(nn.Module):
         # Word Encoder
         self.wordRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
         # Sentence Encoder
-        self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
+        self.sentRNN = SentRNN(self.codebert_embed_size, self.hidden_size)
         # Hunk Encoder
         self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
 
