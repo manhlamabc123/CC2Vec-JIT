@@ -135,7 +135,7 @@ class HierachicalRNN(nn.Module):
             for j in range(n_line):
                 words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
                 words = torch.tensor(words, device=self.device)
-                sent = self.wordRNN(words.view(self.batch_size, -1))
+                sent = self.wordRNN(words.view(-1, self.batch_size))
                 sent = sent[0]
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
             hunk, _ = self.sentRNN(sents, hid_state_sent)
