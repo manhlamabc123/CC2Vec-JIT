@@ -98,6 +98,7 @@ class HierachicalRNN(nn.Module):
         self.codebert_embed_size = args.codebert_embed_size
         self.hidden_size = args.hidden_size
         self.cls = args.class_num
+        self.device = args.device
 
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
@@ -125,7 +126,7 @@ class HierachicalRNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward_code(self, x, hid_state):
-        hid_state_hunk, hid_state_sent, hid_state_word = hid_state
+        _, hid_state_sent, _ = hid_state
         n_batch, n_hunk, n_line = x.shape[0], x.shape[1], x.shape[2]
         # i: hunk; j: line; k: batch
         hunks = None
@@ -133,7 +134,7 @@ class HierachicalRNN(nn.Module):
             sents = None
             for j in range(n_line):
                 words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
-                words = torch.tensor(words, device='cuda')
+                words = torch.tensor(words, device=self.device)
                 sent = self.wordRNN(words.view(-1, self.batch_size))
                 sent = sent[0]
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
