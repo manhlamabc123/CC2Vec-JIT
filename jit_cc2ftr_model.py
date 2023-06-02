@@ -192,6 +192,10 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
 
+        # Set model batch_size
+        if added_code.shape[0] != self.comparision_layer.batch_size:
+            self.comparision_layer.batch_size = added_code.shape[0]
+
         diff_code = None
         for i in range(x_added_code.shape[0]):
             x_diff_code = self.comparision_layer(x_added_code[i], x_removed_code[i]).unsqueeze(0)

@@ -36,27 +36,25 @@ def train_model(data, params):
             # Set model batch_size
             if added_code.shape[0] != model.batch_size:
                 model.batch_size = added_code.shape[0]
-                print(model.batch_size)
 
-                # reset the hidden state of hierarchical attention model
-                state_word = model.init_hidden_word()
-                state_sent = model.init_hidden_sent()
-                state_hunk = model.init_hidden_hunk()
-                print(state_word.size())
-                
-                optimizer.zero_grad()
+            # reset the hidden state of hierarchical attention model
+            state_word = model.init_hidden_word()
+            state_sent = model.init_hidden_sent()
+            state_hunk = model.init_hidden_hunk()
+            
+            optimizer.zero_grad()
 
-                # Forward
-                predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
+            # Forward
+            predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
 
-                # Calculate loss
-                loss = criterion(predict, labels)
+            # Calculate loss
+            loss = criterion(predict, labels)
 
-                loss.backward()
+            loss.backward()
 
-                total_loss += loss
+            total_loss += loss
 
-                optimizer.step()
+            optimizer.step()
 
         print('Training: Epoch %i / %i -- Total loss: %f' % (epoch, params.num_epochs, total_loss))
 
