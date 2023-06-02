@@ -185,7 +185,6 @@ class HierachicalRNN(nn.Module):
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
             hunk, _ = self.sentRNN(sents, hid_state_sent)
             hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
-        hunks = torch.mean(hunks, dim=0)  # hunk features
         return hunks
 
     def forward(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
@@ -194,10 +193,14 @@ class HierachicalRNN(nn.Module):
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
 
-        x_diff_code = self.comparision_layer(x_added_code, x_removed_code)
-        x_diff_code = self.dropout(x_diff_code)
+        diff_code = None
+        for i in range(x_added_code.shape[0]):
+            x_diff_code = self.comparision_layer(x_added_code[i], x_removed_code[i]).unsqueeze(0)
+            diff_code = x_diff_code if diff_code is None else torch.cat((diff_code, x_diff_code), 0)
+        diff_code = torch.mean(diff_code, 0)
+        diff_code = self.dropout(diff_code)
 
-        out = self.fc1(x_diff_code)
+        out = self.fc1(diff_code)
         out = F.relu(out)
         out = self.fc2(out)
         out = self.sigmoid(out).squeeze(1)
