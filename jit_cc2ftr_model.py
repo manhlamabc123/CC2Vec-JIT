@@ -2,8 +2,6 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
-from torch.autograd import Variable
-from transformers import RobertaModel
 
 # Make the the multiple attention with word vectors.
 def attention_mul(rnn_outputs, att_weights):
@@ -153,7 +151,6 @@ class HierachicalRNN(nn.Module):
         self.vocab_size = args.vocab_code
         self.batch_size = args.batch_size
         self.embed_size = args.embed_size
-        self.codebert_embed_size = args.codebert_embed_size
         self.hidden_size = args.hidden_size
         self.cls = args.class_num
         self.device = args.device
@@ -161,14 +158,11 @@ class HierachicalRNN(nn.Module):
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
         # Word Encoder
-        self.wordRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
+        self.wordRNN = WordRNN(self.vocab_size, self.embed_size, self.batch_size, self.hidden_size)
         # Sentence Encoder
-        self.sentRNN = SentRNN(self.codebert_embed_size, self.hidden_size)
+        self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
         # Hunk Encoder
         self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
-
-        # for param in self.codeBERT.base_model.parameters():
-        #     param.requires_grad = False
 
         self.comparision_layer = ComparisionLayer(args)
 
@@ -178,7 +172,7 @@ class HierachicalRNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward_code(self, x, hid_state):
-        _, hid_state_sent, _ = hid_state
+        _, hid_state_sent, hid_state_word = hid_state
         n_batch, n_hunk, n_line = x.shape[0], x.shape[1], x.shape[2]
         # i: hunk; j: line; k: batch
         hunks = None
@@ -187,8 +181,7 @@ class HierachicalRNN(nn.Module):
             for j in range(n_line):
                 words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
                 words = torch.tensor(words, device=self.device)
-                sent = self.wordRNN(words.view(-1, self.batch_size))
-                sent = sent[0]
+                sent, _ = self.wordRNN(words.view(-1, self.batch_size), hid_state_word)
                 sents = sent if sents is None else torch.cat((sents, sent), 0)
             hunk, _ = self.sentRNN(sents, hid_state_sent)
             hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)

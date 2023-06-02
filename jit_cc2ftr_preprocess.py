@@ -1,7 +1,6 @@
 import pickle
 from torch.utils.data import Dataset, DataLoader
 import torch
-import numpy as np
 from jit_padding import *
 
 class CustomDataset(Dataset):
@@ -24,34 +23,6 @@ class CustomDataset(Dataset):
             'labels': labels
         }
     
-def padding_length(line, max_length):
-    line_length = len(line.split())
-    if line_length < max_length:
-        return str(line + ' <NULL>' * (max_length - line_length)).strip()
-    elif line_length > max_length:
-        line_split = line.split()
-        return ' '.join([line_split[i] for i in range(max_length)])
-    else:
-        return line
-    
-def convert_msg_to_label(pad_msg, dict_msg):
-    nrows, ncols = pad_msg.shape
-    labels = []
-    for i in range(nrows):
-        column = list(set(list(pad_msg[i, :])))
-        label = np.zeros(len(dict_msg))
-        for c in column:
-            label[c] = 1
-        labels.append(label)
-    return np.array(labels)
-
-def mapping_dict_msg(pad_msg, dict_msg):
-    return np.array(
-        [np.array([dict_msg[w.lower()] if w.lower() in dict_msg.keys() else dict_msg['<NULL>'] for w in line.split(' ')]) for line in pad_msg])
-
-def padding_message(data, max_length):
-    return [padding_length(line=d, max_length=max_length) for d in data]
-
 def preprocess_data(params):
     if params.train is True:
         # Load train data
@@ -79,6 +50,8 @@ def preprocess_data(params):
 
     pad_added_code = padding_commit_code(data=added_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
     pad_removed_code = padding_commit_code(data=removed_code, max_file=params.code_file, max_line=params.code_line, max_length=params.code_length)
+    pad_added_code = mapping_dict_code(pad_code=pad_added_code, dict_code=dict_code)
+    pad_removed_code = mapping_dict_code(pad_code=pad_removed_code, dict_code=dict_code)
 
     # Using Pytorch Dataset and DataLoader
     code_dataset = CustomDataset(pad_added_code, pad_removed_code, pad_msg_labels)
