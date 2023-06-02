@@ -19,9 +19,8 @@ def attention_mul(rnn_outputs, att_weights):
 
 # The word RNN model for generating a sentence vector
 class WordRNN(nn.Module):
-    def __init__(self, vocab_size, embed_size, batch_size, hidden_size):
+    def __init__(self, vocab_size, embed_size, hidden_size):
         super(WordRNN, self).__init__()
-        self.batch_size = batch_size
         self.embed_size = embed_size
         self.hidden_size = hidden_size
         # Word Encoder
@@ -158,7 +157,7 @@ class HierachicalRNN(nn.Module):
         self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
 
         # Word Encoder
-        self.wordRNN = WordRNN(self.vocab_size, self.embed_size, self.batch_size, self.hidden_size)
+        self.wordRNN = WordRNN(self.vocab_size, self.embed_size, self.hidden_size)
         # Sentence Encoder
         self.sentRNN = SentRNN(self.embed_size, self.hidden_size)
         # Hunk Encoder
