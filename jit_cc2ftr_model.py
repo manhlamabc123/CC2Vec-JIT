@@ -227,7 +227,6 @@ class HierachicalRNN(nn.Module):
         return torch.cat((x_added_code, x_removed_code), dim=1)
 
     def init_hidden_hunk(self):
-        print(self.batch_size)
         return torch.zeros(2, self.batch_size, self.hidden_size, device=self.device)
 
     def init_hidden_sent(self):
