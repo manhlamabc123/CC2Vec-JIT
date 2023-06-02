@@ -42,6 +42,7 @@ def train_model(data, params):
                 state_word = model.init_hidden_word()
                 state_sent = model.init_hidden_sent()
                 state_hunk = model.init_hidden_hunk()
+                print(state_word.size())
                 
                 optimizer.zero_grad()
 
