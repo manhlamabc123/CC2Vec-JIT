@@ -28,18 +28,22 @@ def train_model(data, params):
     model.eval()
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
-        for batch in tqdm(code_loader):
-            # reset the hidden state of hierarchical attention model
-            state_word = model.init_hidden_word()
-            state_sent = model.init_hidden_sent()
-            state_hunk = model.init_hidden_hunk()            
+        for batch in tqdm(code_loader):    
 
             # Extract data from DataLoader
             added_code = batch["added_code"].to(params.device)
             removed_code = batch["removed_code"].to(params.device)
             labels = batch["labels"].to(params.device)
+
+            if model.batch_size != added_code.shape[0]:
+                model.batch_size = added_code.shape[0]
+
+            # reset the hidden state of hierarchical attention model
+            state_word = model.init_hidden_word()
+            state_sent = model.init_hidden_sent()
+            state_hunk = model.init_hidden_hunk()        
             
-            # optimizer.zero_grad()
+            optimizer.zero_grad()
 
             # Forward
             predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
@@ -48,7 +52,7 @@ def train_model(data, params):
             print(predict.size(), labels.size())
             loss = criterion(predict, labels)
 
-            # loss.backward()
+            loss.backward()
 
             total_loss += loss
 
