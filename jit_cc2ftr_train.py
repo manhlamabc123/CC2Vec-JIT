@@ -20,11 +20,12 @@ def train_model(data, params):
 
     # Create model, optimizer, criterion
     model = HierachicalRNN(args=params).to(params.device)
-    model = torch.compile(model, backend="inductor")
+    # model = torch.compile(model, backend="inductor")
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
     
     # Training
+    model.eval()
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(code_loader):
@@ -38,15 +39,16 @@ def train_model(data, params):
             removed_code = batch["removed_code"].to(params.device)
             labels = batch["labels"].to(params.device)
             
-            optimizer.zero_grad()
+            # optimizer.zero_grad()
 
             # Forward
             predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
 
             # Calculate loss
+            print(predict.size(), labels.size())
             loss = criterion(predict, labels)
 
-            loss.backward()
+            # loss.backward()
 
             total_loss += loss
 
