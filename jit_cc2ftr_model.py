@@ -87,106 +87,20 @@ class HunkRNN(nn.Module):
 
         hunk = attention_mul(out_state, attn)
         return hunk, hid_state
-
-# The HAN model
-class HierachicalRNN(nn.Module):
+    
+class ComparisionLayer(nn.Module):
     def __init__(self, args):
-        super(HierachicalRNN, self).__init__()
-        self.vocab_size = args.vocab_code
+        super(ComparisionLayer, self).__init__()
         self.batch_size = args.batch_size
         self.embed_size = args.embed_size
-        self.codebert_embed_size = args.codebert_embed_size
-        self.hidden_size = args.hidden_size
-        self.cls = args.class_num
-        self.device = args.device
-
-        self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
-
-        # Word Encoder
-        self.wordRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
-        # Sentence Encoder
-        self.sentRNN = SentRNN(self.codebert_embed_size, self.hidden_size)
-        # Hunk Encoder
-        self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
-
-        # for param in self.codeBERT.base_model.parameters():
-        #     param.requires_grad = False
-
-        # standard neural network layer
-        self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
 
         # neural network tensor
         self.W_nn_tensor_one = nn.Linear(self.embed_size, self.embed_size)
         self.W_nn_tensor_two = nn.Linear(self.embed_size, self.embed_size)
         self.V_nn_tensor = nn.Linear(self.embed_size * 2, 2)
-
-        # Hidden layers before putting to the output layer
-        self.fc1 = nn.Linear(3 * self.embed_size + 4, 2 * self.hidden_size)
-        self.fc2 = nn.Linear(2 * self.hidden_size, self.cls)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward_code(self, x, hid_state):
-        _, hid_state_sent, _ = hid_state
-        n_batch, n_hunk, n_line = x.shape[0], x.shape[1], x.shape[2]
-        # i: hunk; j: line; k: batch
-        hunks = None
-        for i in range(n_hunk):
-            sents = None
-            for j in range(n_line):
-                words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
-                words = torch.tensor(words, device=self.device)
-                sent = self.wordRNN(words.view(-1, self.batch_size))
-                sent = sent[0]
-                sents = sent if sents is None else torch.cat((sents, sent), 0)
-            hunk, _ = self.sentRNN(sents, hid_state_sent)
-            hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
-        hunks = torch.mean(hunks, dim=0)  # hunk features
-        return hunks
-
-    def forward(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
-
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-
-        subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
-        multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
-        cos = self.cosine_similarity(added_code=x_added_code, removed_code=x_removed_code)
-        euc = self.euclidean_similarity(added_code=x_added_code, removed_code=x_removed_code)
-        nn = self.standard_neural_network_layer(added_code=x_added_code, removed_code=x_removed_code)
-        ntn = self.neural_network_tensor_layer(added_code=x_added_code, removed_code=x_removed_code)
-
-        x_diff_code = torch.cat((subtract, multiple, cos, euc, nn, ntn), dim=1)
-        x_diff_code = self.dropout(x_diff_code)
-
-        out = self.fc1(x_diff_code)
-        out = F.relu(out)
-        out = self.fc2(out)
-        out = self.sigmoid(out).squeeze(1)
-        return out
-
-    def forward_commit_embeds_diff(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
-
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-
-        subtract = self.subtraction(added_code=x_added_code, removed_code=x_removed_code)
-        multiple = self.multiplication(added_code=x_added_code, removed_code=x_removed_code)
-        cos = self.cosine_similarity(added_code=x_added_code, removed_code=x_removed_code)
-        euc = self.euclidean_similarity(added_code=x_added_code, removed_code=x_removed_code)
-        nn = self.standard_neural_network_layer(added_code=x_added_code, removed_code=x_removed_code)
-        ntn = self.neural_network_tensor_layer(added_code=x_added_code, removed_code=x_removed_code)
-
-        return torch.cat((subtract, multiple, cos, euc, nn, ntn), dim=1)
-
-    def forward_commit_embeds(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
-        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
-
-        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
-        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-
-        return torch.cat((x_added_code, x_removed_code), dim=1)
+    
+        # standard neural network layer
+        self.standard_nn_layer = nn.Linear(self.embed_size * 2, self.embed_size)
 
     def subtraction(self, added_code, removed_code):
         return added_code - removed_code
@@ -221,6 +135,97 @@ class HierachicalRNN(nn.Module):
         code = torch.cat((removed_code, added_code), dim=1)
         V_output = self.V_nn_tensor(code)
         return F.relu(W_output + V_output)
+    
+    def forward(self, added_code, removed_code):
+        subtract = self.subtraction(added_code, removed_code)
+        multiple = self.multiplication(added_code, removed_code)
+        cos = self.cosine_similarity(added_code, removed_code)
+        euc = self.euclidean_similarity(added_code, removed_code)
+        nn = self.standard_neural_network_layer(added_code, removed_code)
+        ntn = self.neural_network_tensor_layer(added_code, removed_code)
+
+        return torch.cat((subtract, multiple, cos, euc, nn, ntn), dim=1)
+
+# The HAN model
+class HierachicalRNN(nn.Module):
+    def __init__(self, args):
+        super(HierachicalRNN, self).__init__()
+        self.vocab_size = args.vocab_code
+        self.batch_size = args.batch_size
+        self.embed_size = args.embed_size
+        self.codebert_embed_size = args.codebert_embed_size
+        self.hidden_size = args.hidden_size
+        self.cls = args.class_num
+        self.device = args.device
+
+        self.dropout = nn.Dropout(args.dropout_keep_prob)  # drop out
+
+        # Word Encoder
+        self.wordRNN = RobertaModel.from_pretrained("microsoft/codebert-base")
+        # Sentence Encoder
+        self.sentRNN = SentRNN(self.codebert_embed_size, self.hidden_size)
+        # Hunk Encoder
+        self.hunkRNN = HunkRNN(self.embed_size, self.hidden_size)
+
+        # for param in self.codeBERT.base_model.parameters():
+        #     param.requires_grad = False
+
+        self.comparision_layer = ComparisionLayer(args)
+
+        # Hidden layers before putting to the output layer
+        self.fc1 = nn.Linear(3 * self.embed_size + 4, 2 * self.hidden_size)
+        self.fc2 = nn.Linear(2 * self.hidden_size, self.cls)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward_code(self, x, hid_state):
+        _, hid_state_sent, _ = hid_state
+        n_batch, n_hunk, n_line = x.shape[0], x.shape[1], x.shape[2]
+        # i: hunk; j: line; k: batch
+        hunks = None
+        for i in range(n_hunk):
+            sents = None
+            for j in range(n_line):
+                words = np.stack([x[k][i][j].cpu().numpy() for k in range(n_batch)], axis=0)
+                words = torch.tensor(words, device=self.device)
+                sent = self.wordRNN(words.view(-1, self.batch_size))
+                sent = sent[0]
+                sents = sent if sents is None else torch.cat((sents, sent), 0)
+            hunk, _ = self.sentRNN(sents, hid_state_sent)
+            hunks = hunk if hunks is None else torch.cat((hunks, hunk), 0)
+        hunks = torch.mean(hunks, dim=0)  # hunk features
+        return hunks
+
+    def forward(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
+        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
+
+        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
+        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
+
+        x_diff_code = self.comparision_layer(x_added_code, x_removed_code)
+        x_diff_code = self.dropout(x_diff_code)
+
+        out = self.fc1(x_diff_code)
+        out = F.relu(out)
+        out = self.fc2(out)
+        out = self.sigmoid(out).squeeze(1)
+        return out
+
+    def forward_commit_embeds_diff(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
+        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
+
+        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
+        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
+        x_diff_code = self.comparision_layer(x_added_code, x_removed_code)
+
+        return x_diff_code
+
+    def forward_commit_embeds(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
+        hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
+
+        x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
+        x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
+
+        return torch.cat((x_added_code, x_removed_code), dim=1)
 
     def init_hidden_hunk(self):
         return torch.zeros(2, self.batch_size, self.hidden_size, device=self.device)
