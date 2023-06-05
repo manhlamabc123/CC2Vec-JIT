@@ -214,9 +214,13 @@ class HierachicalRNN(nn.Module):
 
         x_added_code = self.forward_code(x=added_code, hid_state=hid_state)
         x_removed_code = self.forward_code(x=removed_code, hid_state=hid_state)
-        x_diff_code = self.comparision_layer(x_added_code, x_removed_code)
+        diff_code = None
+        for i in range(x_added_code.shape[0]):
+            x_diff_code = self.comparision_layer(x_added_code[i], x_removed_code[i]).unsqueeze(0)
+            diff_code = x_diff_code if diff_code is None else torch.cat((diff_code, x_diff_code), 0)
+        diff_code = torch.mean(diff_code, 0)
 
-        return x_diff_code
+        return diff_code
 
     def forward_commit_embeds(self, added_code, removed_code, hid_state_hunk, hid_state_sent, hid_state_word):
         hid_state = (hid_state_hunk, hid_state_sent, hid_state_word)
