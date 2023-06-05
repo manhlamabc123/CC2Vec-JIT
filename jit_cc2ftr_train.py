@@ -49,7 +49,6 @@ def train_model(data, params):
             predict = model(added_code, removed_code, state_hunk, state_sent, state_word)
 
             # Calculate loss
-            print(predict.size(), labels.size())
             loss = criterion(predict, labels)
 
             loss.backward()

@@ -25,7 +25,15 @@ def extracted_cc2ftr(data, params):
             added_code = batch["added_code"].to(params.device)
             removed_code = batch["removed_code"].to(params.device)
 
-            commit_ftr = model.forward_commit_embeds_diff(added_code, removed_code)
+            if model.batch_size != added_code.shape[0]:
+                model.batch_size = added_code.shape[0]
+
+            # reset the hidden state of hierarchical attention model
+            state_word = model.init_hidden_word()
+            state_sent = model.init_hidden_sent()
+            state_hunk = model.init_hidden_hunk()  
+
+            commit_ftr = model.forward_commit_embeds_diff(added_code, removed_code, state_hunk, state_sent, state_word)
             commit_ftrs.append(commit_ftr)
 
         commit_ftrs = torch.cat(commit_ftrs).cpu().detach().numpy()
