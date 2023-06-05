@@ -48,14 +48,13 @@ def evaluation_model(data, params):
 
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
-    df = pd.DataFrame({'label': all_label, 'pred': all_predict})
-    if os.path.isdir('./pred_scores/') is False:
-        os.makedirs('./pred_scores/')
-    df.to_csv('./pred_scores/test.csv', index=False, sep=',')
-
     # convert probabilities to binary predictions
     y_pred = [int(p >= 0.5) for p in all_predict]
     target_names = ['Clean', 'Defect']
+    df = pd.DataFrame({'label': all_label, 'pred': y_pred})
+    if os.path.isdir('./pred_scores/') is False:
+        os.makedirs('./pred_scores/')
+    df.to_csv('./pred_scores/test.csv', index=False, sep=',')
     report = classification_report(all_label, y_pred, target_names=target_names, output_dict=True)
     # create DataFrame from report
     df = pd.DataFrame(report).transpose()
