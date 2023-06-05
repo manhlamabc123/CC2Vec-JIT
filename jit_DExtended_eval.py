@@ -51,7 +51,7 @@ def evaluation_model(data, params):
     df = pd.DataFrame({'label': all_label, 'pred': all_predict})
     if os.path.isdir('./pred_scores/') is False:
         os.makedirs('./pred_scores/')
-    df.to_csv('./pred_scores/test_sim_' + params.project + '.csv', index=False, sep=',')
+    df.to_csv('./pred_scores/test.csv', index=False, sep=',')
 
     # convert probabilities to binary predictions
     y_pred = [int(p >= 0.5) for p in all_predict]
