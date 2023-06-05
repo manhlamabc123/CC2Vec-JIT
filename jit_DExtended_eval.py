@@ -1,7 +1,7 @@
 from jit_DExtended_model import DeepJITExtended
 from jit_utils import mini_batches_DExtended
 from sklearn.metrics import roc_auc_score    
-import torch 
+import torch, os
 from tqdm import tqdm
 from sklearn.metrics import classification_report
 import pandas as pd
@@ -46,13 +46,16 @@ def evaluation_model(data, params):
             all_predict += predict
             all_label += labels.tolist()
 
-    print(len(all_predict), len(all_label))
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
+
+    df = pd.DataFrame({'label': all_label, 'pred': all_predict})
+    if os.path.isdir('./pred_scores/') is False:
+        os.makedirs('./pred_scores/')
+    df.to_csv('./pred_scores/test_sim_' + params.project + '.csv', index=False, sep=',')
 
     # convert probabilities to binary predictions
     y_pred = [int(p >= 0.5) for p in all_predict]
     target_names = ['Clean', 'Defect']
-    print(len(all_label), len(y_pred))
     report = classification_report(all_label, y_pred, target_names=target_names, output_dict=True)
     # create DataFrame from report
     df = pd.DataFrame(report).transpose()
