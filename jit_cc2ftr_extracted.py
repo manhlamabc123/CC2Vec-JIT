@@ -26,8 +26,8 @@ def extracted_cc2ftr(data, params):
             added_code = batch["added_code"].to(params.device)
             removed_code = batch["removed_code"].to(params.device)
 
-            if model.batch_size != added_code.shape[0]:
-                model.batch_size = added_code.shape[0]
+            # if model.batch_size != added_code.shape[0]:
+            #     model.batch_size = added_code.shape[0]
 
             # reset the hidden state of hierarchical attention model
             state_word = model.init_hidden_word()
