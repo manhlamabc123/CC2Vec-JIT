@@ -46,6 +46,7 @@ def evaluation_model(data, params):
             all_predict += predict
             all_label += labels.tolist()
 
+    print(len(all_predict), len(all_label))
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
     # convert probabilities to binary predictions
