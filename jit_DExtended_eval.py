@@ -52,6 +52,7 @@ def evaluation_model(data, params):
     # convert probabilities to binary predictions
     y_pred = [int(p >= 0.5) for p in all_predict]
     target_names = ['Clean', 'Defect']
+    print(len(all_label), len(y_pred))
     report = classification_report(all_label, y_pred, target_names=target_names, output_dict=True)
     # create DataFrame from report
     df = pd.DataFrame(report).transpose()
