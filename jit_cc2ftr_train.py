@@ -25,7 +25,6 @@ def train_model(data, params):
     criterion = nn.BCEWithLogitsLoss()
     
     # Training
-    model.eval()
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
         for batch in tqdm(code_loader):    
