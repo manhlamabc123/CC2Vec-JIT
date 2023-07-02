@@ -50,7 +50,7 @@ if __name__ == '__main__':
     
     if params.train is True:
         data = pickle.load(open(params.train_data, 'rb'))
-        ids, labels, msgs, codes = data 
+        ids, msgs, codes, labels = data 
         labels = np.array(labels)
 
         data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         train_model(data=data, params=params)        
     elif params.predict is True:
         data = pickle.load(open(params.pred_data, 'rb'))
-        ids, labels, msgs, codes = data 
+        ids, msgs, codes, labels = data 
         labels = np.array(labels)
 
         data_ftr = pickle.load(open(params.pred_data_cc2ftr, 'rb'))
