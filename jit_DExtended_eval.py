@@ -1,7 +1,7 @@
 from jit_DExtended_model import DeepJITExtended
 from jit_utils import mini_batches_DExtended
 from sklearn.metrics import roc_auc_score    
-import torch 
+import torch, os
 from tqdm import tqdm
 from sklearn.metrics import classification_report
 import pandas as pd
@@ -57,4 +57,10 @@ def evaluation_model(data, params):
 
     # write DataFrame to CSV file
     df.to_csv('cc2vec_codeBERT_mean.csv')
+
+    df_1 = pd.DataFrame({'label': all_label, 'pred': all_predict})
+    if os.path.isdir('./pred_scores/') is False:
+        os.makedirs('./pred_scores/')
+    df_1.to_csv('./pred_scores/test_com_' + params.project + '.csv', index=False, sep=',')
+
     print('Test data -- AUC score:', auc_score)
