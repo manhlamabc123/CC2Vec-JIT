@@ -1,13 +1,14 @@
 import argparse
-from jit_DExtended_padding import padding_data
-import pickle
-import numpy as np 
+import torch
 from jit_DExtended_eval import evaluation_model
 from jit_DExtended_train import train_model
+from jit_DExtended_preprocess import preprocess_data
 
 def read_args():
     parser = argparse.ArgumentParser()
     # Training our model
+    parser.add_argument('-project', type=str, default='openstack', help='name of the dataset')
+
     parser.add_argument('-train', action='store_true', help='training DeepJIT model')  
 
     parser.add_argument('-train_data', type=str, help='the directory of our training data')
@@ -28,7 +29,7 @@ def read_args():
     parser.add_argument('-code_length', type=int, default=512, help='the length of each LOC of commit code')
 
     # Number of parameters for PatchNet model
-    parser.add_argument('-embedding_dim', type=int, default=64, help='the dimension of embedding vector')
+    parser.add_argument('-embedding_dim', type=int, default=768, help='the dimension of embedding vector')
     parser.add_argument('-filter_sizes', type=str, default='1, 2, 3', help='the filter size of convolutional layers')
     parser.add_argument('-num_filters', type=int, default=64, help='the number of filters')
     parser.add_argument('-hidden_units', type=int, default=512, help='the number of nodes in hidden layers')
@@ -47,39 +48,30 @@ def read_args():
 
 if __name__ == '__main__':
     params = read_args().parse_args()
-    
+    params.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    params.device = torch.device("cpu")
+    # import torch._dynamo as dynamo
+    # torch._dynamo.config.suppress_errors = True
+    # torch.backends.cudnn.benchmark = True
+
     if params.train is True:
-        data = pickle.load(open(params.train_data, 'rb'))
-        ids, labels, msgs, codes = data 
-        labels = np.array(labels)
 
-        data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
+        data = preprocess_data(params)
 
-        dictionary = pickle.load(open(params.dictionary_data, 'rb'))   
-        dict_msg, dict_code = dictionary
+        train_model(data=data, params=params)
 
-        pad_msg = padding_data(data=msgs, dictionary=dict_msg, params=params, type='msg')        
-        pad_code = padding_data(data=codes, dictionary=dict_code, params=params, type='code')
+        print("Done")
+
+        exit()
     
-        data = (data_ftr, pad_msg, pad_code, labels, dict_msg, dict_code)
-        train_model(data=data, params=params)        
     elif params.predict is True:
-        data = pickle.load(open(params.pred_data, 'rb'))
-        ids, labels, msgs, codes = data 
-        labels = np.array(labels)
 
-        data_ftr = pickle.load(open(params.pred_data_cc2ftr, 'rb'))
+        params.batch_size = 1
 
-        dictionary = pickle.load(open(params.dictionary_data, 'rb'))   
-        dict_msg, dict_code = dictionary
-
-        pad_msg = padding_data(data=msgs, dictionary=dict_msg, params=params, type='msg')        
-        pad_code = padding_data(data=codes, dictionary=dict_code, params=params, type='code')
+        data = preprocess_data(params)
         
-        data = (data_ftr, pad_msg, pad_code, labels, dict_msg, dict_code)
         evaluation_model(data=data, params=params)
-    else:
-        print('--------------------------------------------------------------------------------')
-        print('--------------------------Something wrongs with your command--------------------')
-        print('--------------------------------------------------------------------------------')
+
+        print("Done")
+        
         exit()

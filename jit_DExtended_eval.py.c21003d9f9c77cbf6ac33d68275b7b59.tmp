@@ -1,12 +1,13 @@
 from jit_DExtended_model import DeepJITExtended
 import torch 
 from tqdm import tqdm
-from jit_utils import mini_batches_update_DExtended
-import torch.nn as nn
 import os, datetime
-from jit_utils import save
+import os, datetime
+import pandas as pd
+from tqdm import tqdm
+from sklearn.metrics import roc_auc_score
 
-def train_model(data, params):
+def evaluation_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
 
     # Set up param
@@ -19,19 +20,11 @@ def train_model(data, params):
 
     # create and train the defect model
     model = DeepJITExtended(args=params).to(device=params.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
-    criterion = nn.BCELoss()
+    model.load_state_dict(torch.load(params.load_model, map_location=params.device))
 
-    # Training
-    for epoch in range(1, params.num_epochs + 1):
-        if epoch <= 2:
-            for param in model.codeBERT.parameters():
-                param.requires_grad = True
-        else:
-            for param in model.codeBERT.parameters():
-                param.requires_grad = False
-                
-        total_loss = 0
+    model.eval()
+    with torch.no_grad():
+        all_predict, all_label = [], []
         for batch in tqdm(code_loader):
             # Extract data from DataLoader
             code = batch["code"].to(params.device)
@@ -39,19 +32,16 @@ def train_model(data, params):
             labels = batch["labels"].to(params.device)
             cc2ftr = batch["feature"].to(params.device)
             
-            optimizer.zero_grad()
-
             # Forward
             predict = model(cc2ftr, code, message)
 
-            # Calculate loss
-            loss = criterion(predict, labels)
+            all_predict += (predict.cpu().detach().numpy().tolist())
+            all_label += (labels.cpu().detach().numpy().tolist())
 
-            loss.backward()
+    auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
-            total_loss += loss
-
-            optimizer.step()
-
-        print('Epoch %i / %i -- Total loss: %f' % (epoch, params.num_epochs, total_loss))
-        save(model, params.save_dir, 'epoch', epoch)
+    df = pd.DataFrame({'label': all_label, 'pred': all_predict})
+    if os.path.isdir('./pred_scores/') is False:
+        os.makedirs('./pred_scores/')
+    df.to_csv('./pred_scores/test_com_' + params.project + '.csv', index=False, sep=',')
+    print('Test data -- AUC score:', auc_score)
