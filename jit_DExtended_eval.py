@@ -20,7 +20,7 @@ def evaluation_model(data, params):
 
     # create and train the defect model
     model = DeepJITExtended(args=params).to(device=params.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
+    model.load_state_dict(torch.load(params.load_model, map_location=params.device))
 
     model.eval()
     with torch.no_grad():
