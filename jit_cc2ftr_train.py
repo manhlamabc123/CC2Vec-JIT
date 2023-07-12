@@ -25,8 +25,8 @@ def train_model(data, params):
     criterion = nn.BCEWithLogitsLoss()
     
     # Training
-    for epoch in range(1, 4 + 1):
-        if epoch <= 1:
+    for epoch in range(1, params.num_epochs + 1):
+        if epoch <= 2:
             for param in model.codeBERT.parameters():
                 param.requires_grad = True
         else:
