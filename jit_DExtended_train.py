@@ -10,7 +10,7 @@ def train_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
 
     # Set up param
-    params.save_dir = os.path.join(params.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    params.save_dir = os.path.join(params.save_dir, params.project)
     params.vocab_code = len(dict_code)
     params.vocab_msg = len(dict_msg)
     params.class_num = 1
