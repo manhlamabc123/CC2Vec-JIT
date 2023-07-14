@@ -76,7 +76,7 @@ def preprocess_data(params, max_seq_length: int = 512):
     
     elif params.predict is True:
         # Load predict data
-        predict_data = pickle.load(open(params.predict_data, 'rb'))
+        predict_data = pickle.load(open(params.pred_data, 'rb'))
         ids, labels, msgs, codes = predict_data
 
     data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
