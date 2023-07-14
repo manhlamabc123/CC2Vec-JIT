@@ -7,6 +7,10 @@ import pandas as pd
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 
+def write_to_file(file_path, content):
+    with open(file_path, 'a+') as file:
+        file.write(content + '\n')
+
 def evaluation_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
 
@@ -40,8 +44,12 @@ def evaluation_model(data, params):
 
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
+    # Call the function to write the content to the file
+    write_to_file("auc.txt", f"{params.project} - {auc_score}")
+
+    print('Test data -- AUC score:', auc_score)
+
     df = pd.DataFrame({'label': all_label, 'pred': all_predict})
     if os.path.isdir('./pred_scores/') is False:
         os.makedirs('./pred_scores/')
     df.to_csv('./pred_scores/test_com_' + params.project + '.csv', index=False, sep=',')
-    print('Test data -- AUC score:', auc_score)
