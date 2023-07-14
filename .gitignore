@@ -5,3 +5,5 @@ deepjit_train.sh
 __pycache__
 snapshot
 extracted_features_jdt.pkl
+run_all.sh
+run_cc2vec.sh

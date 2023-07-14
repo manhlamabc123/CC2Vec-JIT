@@ -73,13 +73,13 @@ def preprocess_data(params, max_seq_length: int = 512):
         # Load train data
         train_data = pickle.load(open(params.train_data, 'rb'))
         ids, msgs, codes, labels = train_data
+        data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
     
     elif params.predict is True:
         # Load predict data
-        predict_data = pickle.load(open(params.predict_data, 'rb'))
+        predict_data = pickle.load(open(params.pred_data, 'rb'))
         ids, msgs, codes, labels = predict_data
-
-    data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
+        data_ftr = pickle.load(open(params.pred_data_cc2ftr, 'rb'))
 
     # Load dictionary
     dictionary = pickle.load(open(params.dictionary_data, 'rb'))
