@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     if params.train is True:
         train_data = pickle.load(open(params.train_data, 'rb'))
-        train_ids, train_messages, train_codes, train_labels = train_data        
+        train_ids, train_labels, train_messages, train_codes = train_data        
 
         ids = train_ids
         labels = list(train_labels)
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     
     elif params.predict is True:
         data = pickle.load(open(params.predict_data, 'rb'))
-        ids, msgs, codes, labels = data 
+        ids, labels, msgs, codes = data 
 
         dictionary = pickle.load(open(params.dictionary_data, 'rb'))   
         dict_msg, dict_code = dictionary  
