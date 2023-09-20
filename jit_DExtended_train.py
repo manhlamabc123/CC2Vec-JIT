@@ -14,7 +14,7 @@ def train_model(data, params):
     del params.no_cuda
     params.filter_sizes = [int(k) for k in params.filter_sizes.split(',')]
 
-    params.save_dir = os.path.join(params.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    params.save_dir = os.path.join(params.save_dir, params.project)
 
     params.vocab_msg, params.vocab_code = len(dict_msg), len(dict_code)
     params.embedding_ftr = cc2ftr.shape[1]

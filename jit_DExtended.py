@@ -8,6 +8,8 @@ from jit_DExtended_train import train_model
 def read_args():
     parser = argparse.ArgumentParser()
     # Training our model
+    parser.add_argument('-project', type=str, default='openstack', help='name of the dataset')
+
     parser.add_argument('-train', action='store_true', help='training DeepJIT model')  
 
     parser.add_argument('-train_data', type=str, help='the directory of our training data')
@@ -37,7 +39,7 @@ def read_args():
     parser.add_argument('-learning_rate', type=float, default=1e-4, help='learning rate')
     parser.add_argument('-batch_size', type=int, default=64, help='batch size')
     parser.add_argument('-num_epochs', type=int, default=50, help='the number of epochs')    
-    parser.add_argument('-save-dir', type=str, default='snapshot', help='where to save the snapshot')    
+    parser.add_argument('-save-dir', type=str, default='snapshot_dextend', help='where to save the snapshot')
 
     # CUDA
     parser.add_argument('-device', type=int, default=-1,
