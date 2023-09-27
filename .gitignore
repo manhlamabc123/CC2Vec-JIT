@@ -19,3 +19,5 @@ cc2vec_eval.sh
 cc2vec_train.sh
 deepjit_eval.sh
 deepjit_train.sh
+run_cc2vec.sh
+run_all.sh
