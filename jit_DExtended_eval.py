@@ -21,6 +21,7 @@ def evaluation_model(data, params):
     params.class_num = 1
     params.filter_sizes = [int(k) for k in params.filter_sizes.split(',')]
     params.feature_size = cc2ftr[0].shape[0]
+    params.embedding_ftr = cc2ftr.shape[1]
 
     # create and train the defect model
     model = DeepJITExtended(args=params).to(device=params.device)
