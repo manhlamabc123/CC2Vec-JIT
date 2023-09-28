@@ -1,9 +1,8 @@
 import argparse
-from jit_DExtended_padding import padding_data
-import pickle
-import numpy as np 
+import torch
 from jit_DExtended_eval import evaluation_model
 from jit_DExtended_train import train_model
+from jit_DExtended_preprocess import preprocess_data
 
 def read_args():
     parser = argparse.ArgumentParser()
@@ -49,36 +48,14 @@ def read_args():
 
 if __name__ == '__main__':
     params = read_args().parse_args()
-    
+    params.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if params.train is True:
-        data = pickle.load(open(params.train_data, 'rb'))
-        ids, msgs, codes, labels = data 
-        labels = np.array(labels)
-
-        data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
-
-        dictionary = pickle.load(open(params.dictionary_data, 'rb'))   
-        dict_msg, dict_code = dictionary
-
-        pad_msg = padding_data(data=msgs, dictionary=dict_msg, params=params, type='msg')        
-        pad_code = padding_data(data=codes, dictionary=dict_code, params=params, type='code')
-    
-        data = (data_ftr, pad_msg, pad_code, labels, dict_msg, dict_code)
+        data = preprocess_data(params)
         train_model(data=data, params=params)        
     elif params.predict is True:
-        data = pickle.load(open(params.pred_data, 'rb'))
-        ids, msgs, codes, labels = data 
-        labels = np.array(labels)
-
-        data_ftr = pickle.load(open(params.pred_data_cc2ftr, 'rb'))
-
-        dictionary = pickle.load(open(params.dictionary_data, 'rb'))   
-        dict_msg, dict_code = dictionary
-
-        pad_msg = padding_data(data=msgs, dictionary=dict_msg, params=params, type='msg')        
-        pad_code = padding_data(data=codes, dictionary=dict_code, params=params, type='code')
-        
-        data = (data_ftr, pad_msg, pad_code, labels, dict_msg, dict_code)
+        params.batch_size = 1
+        data = preprocess_data(params)
         evaluation_model(data=data, params=params)
     else:
         print('--------------------------------------------------------------------------------')

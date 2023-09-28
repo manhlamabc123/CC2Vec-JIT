@@ -21,3 +21,5 @@ deepjit_eval.sh
 deepjit_train.sh
 run_cc2vec.sh
 run_all.sh
+snapshot_dextend
+extracted_features_*.pkl
