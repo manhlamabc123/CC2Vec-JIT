@@ -63,6 +63,6 @@ def preprocess_data(params):
 
     # Using Pytorch Dataset and DataLoader
     code_dataset = CustomDataset(pad_added_code, pad_removed_code, pad_msg_labels)
-    code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size)
+    code_dataloader = DataLoader(code_dataset, batch_size=params.batch_size, drop_last=True)
 
     return (code_dataloader, pad_msg_labels, dict_msg, dict_code)
