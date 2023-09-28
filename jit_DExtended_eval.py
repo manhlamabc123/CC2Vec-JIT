@@ -38,7 +38,7 @@ def evaluation_model(data, params):
             cc2ftr = batch["feature"].to(params.device)
             
             # Forward
-            predict = model(cc2ftr, code, message)
+            predict = model(cc2ftr, message, code)
 
             all_predict += (predict.cpu().detach().numpy().tolist())
             all_label += (labels.cpu().detach().numpy().tolist())
