@@ -46,7 +46,7 @@ def evaluation_model(data, params):
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
     # Call the function to write the content to the file
-    write_to_file("auc.txt", f"{params.project} - {auc_score}")
+    write_to_file("auc.txt", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} - {params.project} - {auc_score}")
 
     print('Test data -- AUC score:', auc_score)
 
