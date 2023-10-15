@@ -1,7 +1,5 @@
 import numpy as np
-import math
-import os, torch
-import random
+import math, os, torch, random
 
 def save(model, save_dir, save_prefix, epochs):
     if not os.path.isdir(save_dir):       

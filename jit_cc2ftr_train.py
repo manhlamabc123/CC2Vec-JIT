@@ -1,6 +1,6 @@
-from jit_utils import mini_batches, save
+from jit_utils import save
 import torch
-import os, datetime
+import os
 import torch 
 import torch.nn as nn
 from tqdm import tqdm

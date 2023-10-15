@@ -1,10 +1,7 @@
+import os, datetime, torch
 from jit_DExtended_model import DeepJITExtended
-import torch 
 from tqdm import tqdm
-import os, datetime
-import os, datetime
 import pandas as pd
-from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 
 def write_to_file(file_path, content):

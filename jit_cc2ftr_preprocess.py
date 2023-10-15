@@ -1,6 +1,5 @@
-import pickle
+import pickle, torch
 from torch.utils.data import Dataset, DataLoader
-import torch
 from jit_padding import padding_message, clean_and_reformat_code, padding_commit_code, mapping_dict_msg, mapping_dict_code, convert_msg_to_label
 
 class CustomDataset(Dataset):

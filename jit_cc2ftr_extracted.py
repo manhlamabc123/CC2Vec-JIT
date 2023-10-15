@@ -1,8 +1,6 @@
+import torch, pickle
 from jit_cc2ftr_model import HierachicalRNN
-from jit_utils import mini_batches
-import torch
 from tqdm import tqdm
-import pickle
 
 def extracted_cc2ftr(data, params):
     code_loader, labels, _, dict_code = data
