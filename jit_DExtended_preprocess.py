@@ -33,13 +33,13 @@ def preprocess_data(params):
     if params.train is True:
         # Load train data
         train_data = pickle.load(open(params.train_data, 'rb'))
-        ids, labels, msgs, codes = train_data
+        ids, msgs, codes, labels = train_data
         data_ftr = pickle.load(open(params.train_data_cc2ftr, 'rb'))
     
     elif params.predict is True:
         # Load predict data
         predict_data = pickle.load(open(params.pred_data, 'rb'))
-        ids, labels, msgs, codes = predict_data
+        ids, msgs, codes, labels = predict_data
         data_ftr = pickle.load(open(params.pred_data_cc2ftr, 'rb'))
 
     # Load dictionary
