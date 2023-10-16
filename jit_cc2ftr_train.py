@@ -1,7 +1,6 @@
 from jit_utils import save
 import torch
 import os
-import torch 
 import torch.nn as nn
 from tqdm import tqdm
 from jit_cc2ftr_model import HierachicalRNN
