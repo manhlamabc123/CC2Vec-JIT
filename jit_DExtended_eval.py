@@ -1,6 +1,5 @@
 import os, datetime, torch
 from jit_DExtended_model import DeepJITExtended
-from tqdm import tqdm
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
@@ -27,7 +26,7 @@ def evaluation_model(data, params):
     model.eval()
     with torch.no_grad():
         all_predict, all_label = [], []
-        for batch in tqdm(code_loader):
+        for batch in code_loader:
             # Extract data from DataLoader
             code = batch["code"].to(params.device)
             message = batch["message"].to(params.device)

@@ -2,7 +2,6 @@ from jit_utils import save
 import torch
 import os
 import torch.nn as nn
-from tqdm import tqdm
 from jit_cc2ftr_model import HierachicalRNN
 
 def train_model(data, params):
@@ -24,7 +23,7 @@ def train_model(data, params):
 
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
-        for batch in tqdm(code_loader):
+        for batch in code_loader:
             # reset the hidden state of hierarchical attention model
             state_word = model.init_hidden_word(params.device)
             state_sent = model.init_hidden_sent(params.device)

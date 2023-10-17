@@ -1,6 +1,5 @@
 import torch, pickle
 from jit_cc2ftr_model import HierachicalRNN
-from tqdm import tqdm
 
 def extracted_cc2ftr(data, params):
     code_loader, labels, _, dict_code = data
@@ -14,7 +13,7 @@ def extracted_cc2ftr(data, params):
     model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
     commit_ftrs = []
     with torch.no_grad():
-        for batch in tqdm(code_loader):
+        for batch in code_loader:
             state_word = model.init_hidden_word(params.device)
             state_sent = model.init_hidden_sent(params.device)
             state_hunk = model.init_hidden_hunk(params.device)
