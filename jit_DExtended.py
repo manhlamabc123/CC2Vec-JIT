@@ -20,7 +20,7 @@ def read_args():
     parser.add_argument('-pred_data_cc2ftr', type=str, help='the directory of our testing data with cc2ftr')
 
     # Predicting our data
-    parser.add_argument('-load_model', type=str, help='loading our model')
+    parser.add_argument('-load_model', type=str, default=None, help='loading our model')
 
     # Number of parameters for reformatting commits
     parser.add_argument('-msg_length', type=int, default=256, help='the length of the commit message')

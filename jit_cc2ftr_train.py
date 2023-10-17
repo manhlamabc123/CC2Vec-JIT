@@ -17,6 +17,8 @@ def train_model(data, params):
 
     # Device configuration
     model = HierachicalRNN(args=params).to(device=params.device)
+    if params.load_model != None:
+        model.load_state_dict(torch.load(params.load_model, map_location=params.device), strict=False)
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
 
