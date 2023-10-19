@@ -14,7 +14,7 @@ for folder in $(find "$root_directory" -maxdepth 1 -type d); do
     # Perform the desired operations in this directory
     cd $folder_name
 
-    cp epoch_30.pt $folder_name.pt 
+    cp epoch_50.pt $folder_name.pt 
 
     rm -rf epoch*
     
