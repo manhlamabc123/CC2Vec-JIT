@@ -1,7 +1,20 @@
-import argparse, torch
+import argparse, torch, random, os
 from jit_DExtended_eval import evaluation_model
 from jit_DExtended_train import train_model
 from jit_DExtended_preprocess import preprocess_data
+import numpy as np
+
+def seed_torch(seed=42):
+	random.seed(seed)
+	os.environ['PYTHONHASHSEED'] = str(seed) 
+	np.random.seed(seed)
+	torch.manual_seed(seed)
+	torch.cuda.manual_seed(seed)
+	#torch.cuda.manual_seed_all(seed) # if you are using multi-GPU.
+	torch.backends.cudnn.benchmark = False
+	torch.backends.cudnn.deterministic = True
+
+seed_torch()
 
 def read_args():
     parser = argparse.ArgumentParser()
