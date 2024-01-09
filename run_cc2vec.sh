@@ -1,12 +1,16 @@
 #! /bin/bash
 
-DATA_DIR="/data/gpfs/projects/punim1928/RISE/Manh/data/lapredict-paper"
-EPOCHS=3
+# DATA_DIR="/home/manh/Documents/Data/splited-tan-dataset"
+echo "Project: $1"
+echo "Train: $2"
+echo "Test: $3"
+echo "Epochs: $5"
+echo "Data dir: $4"
 
-bash cc2vec_train.sh $1 $DATA_DIR $EPOCHS
+bash cc2vec_train.sh $1 $4 $5 $2
 
-bash cc2vec_eval.sh $1 $DATA_DIR $EPOCHS
+bash cc2vec_eval.sh $1 $4 $5 $2
 
-bash deepjit_train.sh $1 $DATA_DIR $EPOCHS
-
-bash deepjit_eval.sh $1 $DATA_DIR $EPOCHS
+bash deepjit_train.sh $1 $4 $5 $2
+ 
+bash deepjit_eval.sh $1 $4 $5 $2 $3
