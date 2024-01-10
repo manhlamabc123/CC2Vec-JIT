@@ -34,6 +34,8 @@ def train_model(data, params):
             pad_removed_code = batch['removed_code'].to(params.device)
             labels = batch['msg_labels'].to(params.device)
 
+            print(pad_added_code.size(), pad_removed_code.size(), state_hunk.size(), state_sent.size(), state_word.size())
+
             optimizer.zero_grad()
             predict = model(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word)
             loss = criterion(predict, labels)
