@@ -22,7 +22,12 @@ def extracted_cc2ftr(data, params):
             pad_added_code = batch['added_code'].to(params.device)
             pad_removed_code = batch['removed_code'].to(params.device)
 
+            print(pad_added_code.size(), pad_removed_code.size(), state_hunk.size(), state_sent.size(), state_word.size())
+
             commit_ftr = model.forward_commit_embeds_diff(pad_added_code, pad_removed_code, state_hunk, state_sent, state_word)
+
+            print(commit_ftr.size())
+            
             commit_ftrs.append(commit_ftr)
         commit_ftrs = torch.cat(commit_ftrs).cpu().detach().numpy()
     pickle.dump(commit_ftrs, open(params.name, 'wb'))
