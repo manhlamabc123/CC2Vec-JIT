@@ -14,7 +14,7 @@ def seed_torch(seed=42):
 	torch.backends.cudnn.benchmark = False
 	torch.backends.cudnn.deterministic = True
 
-# seed_torch()
+seed_torch()
 
 def read_args():
     parser = argparse.ArgumentParser()
