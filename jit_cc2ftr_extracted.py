@@ -1,6 +1,7 @@
-import torch, pickle
+import torch, pickle, time
 from jit_cc2ftr_model import HierachicalRNN
 from tqdm import tqdm
+from jit_utils import *
 
 def extracted_cc2ftr(data, params):
     code_loader, labels, _, dict_code = data
@@ -14,6 +15,9 @@ def extracted_cc2ftr(data, params):
     model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
     commit_ftrs = []
     with torch.no_grad():
+        # Record the start time
+        start_time = time.time()
+
         for batch in tqdm(code_loader):
             state_word = model.init_hidden_word(params.device)
             state_sent = model.init_hidden_sent(params.device)
@@ -28,4 +32,19 @@ def extracted_cc2ftr(data, params):
             
         commit_ftrs = torch.cat(commit_ftrs).cpu().detach().numpy()
 
+        # Record the end time
+        end_time = time.time()
+
     pickle.dump(commit_ftrs, open(params.name, 'wb'))
+
+    # Calculate the elapsed time
+    elapsed_time = end_time - start_time
+
+    ram = get_ram_usage()
+
+    vram = get_vram_usage()
+
+    # Call the function to write the content to the file
+    log_testing_time(params.testing_time, params.project, elapsed_time, "CC2Vec")
+    log_ram(params.ram, params.project, ram, "CC2Vec")
+    log_vram(params.vram, params.project, vram, "CC2Vec")

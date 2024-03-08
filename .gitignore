@@ -6,3 +6,4 @@ snapshot_dextend
 pred_scores
 auc.txt
 extracted_features_*.pkl
+outputs

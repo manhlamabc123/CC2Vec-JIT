@@ -1,12 +1,8 @@
-import os, datetime, torch
+import os, torch, time
 from jit_DExtended_model import DeepJITExtended
 from tqdm import tqdm
-import pandas as pd
 from sklearn.metrics import roc_auc_score
-
-def write_to_file(file_path, content):
-    with open(file_path, 'a+') as file:
-        file.write(content + '\n')
+from jit_utils import *
 
 def evaluation_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
@@ -27,6 +23,10 @@ def evaluation_model(data, params):
     model.eval()
     with torch.no_grad():
         all_predict, all_label = [], []
+
+        # Record the start time
+        start_time = time.time()
+
         for batch in tqdm(code_loader):
             # Extract data from DataLoader
             code = batch["code"].to(params.device)
@@ -40,10 +40,23 @@ def evaluation_model(data, params):
             all_predict += (predict.cpu().detach().numpy().tolist())
             all_label += (labels.cpu().detach().numpy().tolist())
 
+        # Record the end time
+        end_time = time.time()
+
+    # Calculate the elapsed time
+    elapsed_time = end_time - start_time
+
     auc_score = roc_auc_score(y_true=all_label,  y_score=all_predict)
 
+    ram = get_ram_usage()
+
+    vram = get_vram_usage()
+
     # Call the function to write the content to the file
-    write_to_file("auc.txt", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} - {params.project} - {auc_score}")
+    log_auc(params.auc, params.project, auc_score)
+    log_testing_time(params.testing_time, params.project, elapsed_time, "DeepJIT Extend")
+    log_ram(params.ram, params.project, ram, "DeepJIT Extend")
+    log_vram(params.vram, params.project, vram, "DeepJIT Extend")
 
     print('Test data -- AUC score:', auc_score)
 

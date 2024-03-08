@@ -51,10 +51,14 @@ def read_args():
     parser.add_argument('-batch_size', type=int, default=64, help='batch size')
     parser.add_argument('-num_epochs', type=int, default=50, help='the number of epochs')    
     parser.add_argument('-save-dir', type=str, default='snapshot_dextend', help='where to save the snapshot')
+    parser.add_argument('-auc', type=str, default='', help='')
+    parser.add_argument('-testing_time', type=str, default='', help='')
+    parser.add_argument('-training_time', type=str, default='', help='')
+    parser.add_argument('-ram', type=str, default='', help='')
+    parser.add_argument('-vram', type=str, default='', help='')
 
     # CUDA
-    parser.add_argument('-device', type=int, default=-1,
-                        help='device to use for iterate data, -1 mean cpu [default: -1]')
+    parser.add_argument('-device', type=int, default=-1, help='device to use for iterate data, -1 mean cpu [default: -1]')
     parser.add_argument('-no-cuda', action='store_true', default=False, help='disable the GPU')
     return parser
 

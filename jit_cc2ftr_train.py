@@ -1,6 +1,5 @@
-from jit_utils import save
-import torch
-import os
+from jit_utils import *
+import torch, time, os
 import torch.nn as nn
 from tqdm import tqdm
 from jit_cc2ftr_model import HierachicalRNN
@@ -21,6 +20,9 @@ def train_model(data, params):
         model.load_state_dict(torch.load(params.load_model, map_location=params.device), strict=False)
     optimizer = torch.optim.Adam(model.parameters(), lr=params.l2_reg_lambda)
     criterion = nn.BCEWithLogitsLoss()
+
+    # Record the start time
+    start_time = time.time()
 
     for epoch in range(1, params.num_epochs + 1):
         total_loss = 0
@@ -43,3 +45,17 @@ def train_model(data, params):
 
         print('Training: Epoch %i / %i -- Total loss: %f' % (epoch, params.num_epochs, total_loss))
         save(model, params.save_dir, 'epoch', epoch)
+
+    # Record the end time
+    end_time = time.time()
+
+    # Calculate the elapsed time
+    elapsed_time = end_time - start_time
+
+    ram = get_ram_usage()
+
+    vram = get_vram_usage()
+
+    log_training_time(params.training_time, params.project, elapsed_time, "CC2Vec")
+    log_ram(params.ram, params.project, ram, "CC2Vec")
+    log_vram(params.vram, params.project, vram, "CC2Vec")
