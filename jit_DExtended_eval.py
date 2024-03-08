@@ -3,6 +3,7 @@ from jit_DExtended_model import DeepJITExtended
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 from jit_utils import *
+from logs import *
 
 def evaluation_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
@@ -53,10 +54,10 @@ def evaluation_model(data, params):
     vram = get_vram_usage()
 
     # Call the function to write the content to the file
-    log_auc(params.auc, params.project, auc_score)
-    log_testing_time(params.testing_time, params.project, elapsed_time, "DeepJIT Extend")
-    log_ram(params.ram, params.project, ram, "DeepJIT Extend")
-    log_vram(params.vram, params.project, vram, "DeepJIT Extend")
+    logs(params.auc, params.project, auc_score, "CC2Vec")
+    logs(params.testing_time, params.project, elapsed_time, "DeepJIT Extend")
+    logs(params.ram, params.project, ram, "DeepJIT Extend")
+    logs(params.vram, params.project, vram, "DeepJIT Extend")
 
     print('Test data -- AUC score:', auc_score)
 

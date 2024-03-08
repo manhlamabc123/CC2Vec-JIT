@@ -1,4 +1,5 @@
 from jit_utils import *
+from logs import *
 import torch, time, os
 import torch.nn as nn
 from tqdm import tqdm
@@ -56,6 +57,6 @@ def train_model(data, params):
 
     vram = get_vram_usage()
 
-    log_training_time(params.training_time, params.project, elapsed_time, "CC2Vec")
-    log_ram(params.ram, params.project, ram, "CC2Vec")
-    log_vram(params.vram, params.project, vram, "CC2Vec")
+    logs(params.training_time, params.project, elapsed_time, "CC2Vec")
+    logs(params.ram, params.project, ram, "CC2Vec")
+    logs(params.vram, params.project, vram, "CC2Vec")

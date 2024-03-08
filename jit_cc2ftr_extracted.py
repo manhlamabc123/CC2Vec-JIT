@@ -2,6 +2,7 @@ import torch, pickle, time
 from jit_cc2ftr_model import HierachicalRNN
 from tqdm import tqdm
 from jit_utils import *
+from logs import *
 
 def extracted_cc2ftr(data, params):
     code_loader, labels, _, dict_code = data
@@ -45,6 +46,6 @@ def extracted_cc2ftr(data, params):
     vram = get_vram_usage()
 
     # Call the function to write the content to the file
-    log_testing_time(params.testing_time, params.project, elapsed_time, "CC2Vec")
-    log_ram(params.ram, params.project, ram, "CC2Vec")
-    log_vram(params.vram, params.project, vram, "CC2Vec")
+    logs(params.testing_time, params.project, elapsed_time, "CC2Vec")
+    logs(params.ram, params.project, ram, "CC2Vec")
+    logs(params.vram, params.project, vram, "CC2Vec")

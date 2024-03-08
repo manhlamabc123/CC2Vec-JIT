@@ -3,6 +3,7 @@ import torch, os, time
 from tqdm import tqdm
 import torch.nn as nn
 from jit_utils import *
+from logs import *
 
 def train_model(data, params):
     cc2ftr, code_loader, dict_msg, dict_code = data
@@ -60,6 +61,6 @@ def train_model(data, params):
     vram = get_vram_usage()
 
     # Call the function to write the content to the file
-    log_training_time(params.training_time, params.project, elapsed_time, "DeepJIT Extend")
-    log_ram(params.ram, params.project, ram, "DeepJIT Extend")
-    log_vram(params.vram, params.project, vram, "DeepJIT Extend")
+    logs(params.training_time, params.project, elapsed_time, "DeepJIT Extend")
+    logs(params.ram, params.project, ram, "DeepJIT Extend")
+    logs(params.vram, params.project, vram, "DeepJIT Extend")
